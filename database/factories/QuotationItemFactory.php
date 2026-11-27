@@ -19,7 +19,6 @@ class QuotationItemFactory extends Factory
             'procurement_project_item_id' => ProcurementProjectItem::factory(),
             'unit_price' => fake()->randomFloat(2, 10, 5000),
             'quantity' => fake()->numberBetween(1, 50),
-            'total' => fake()->randomFloat(2, 100, 100000),
             'brand_model' => null,
             'remarks' => null,
         ];

@@ -24,6 +24,7 @@ class PostQualification extends Model
         'result',
         'findings',
         'report_document_id',
+        'performed_by',
     ];
 
     protected function casts(): array
@@ -62,5 +63,10 @@ class PostQualification extends Model
     public function reportDocument(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'report_document_id');
+    }
+
+    public function performedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by');
     }
 }

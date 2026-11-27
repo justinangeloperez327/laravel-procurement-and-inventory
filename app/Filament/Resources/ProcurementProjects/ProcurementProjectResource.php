@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources\ProcurementProjects;
 
+use App\Domain\Bidding\Evaluation;
+use App\Domain\Bidding\Offer;
+use App\Domain\Bidding\PostQualifications;
+use App\Domain\Bidding\Recommendation;
 use App\Domain\Procurement\CreateProcurementProject;
 use App\Domain\Procurement\ModeScreening;
 use App\Domain\Procurement\ModeSelection;
@@ -16,14 +20,25 @@ use App\Filament\Concerns\ScopedToUserAgency;
 use App\Filament\Resources\ProcurementProjects\Pages\EditProcurementProject;
 use App\Filament\Resources\ProcurementProjects\Pages\ListProcurementProjects;
 use App\Filament\Resources\ProcurementProjects\Pages\ViewProcurementProject;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\BiddingsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\BidsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\CriteriaRelationManager;
 use App\Filament\Resources\ProcurementProjects\RelationManagers\DeadlinesRelationManager;
 use App\Filament\Resources\ProcurementProjects\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\ProcurementProjects\RelationManagers\JustificationsRelationManager;
 use App\Filament\Resources\ProcurementProjects\RelationManagers\LotsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\PostQualificationsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\ProtestsRelationManager;
 use App\Filament\Resources\ProcurementProjects\RelationManagers\PublicationsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\QuotationsRelationManager;
+use App\Filament\Resources\ProcurementProjects\RelationManagers\RfqsRelationManager;
+use App\Models\BacResolution;
+use App\Models\Bid;
+use App\Models\EvaluationCriterion;
 use App\Models\FiscalYear;
 use App\Models\ProcurementProject;
 use App\Models\PurchaseRequestItem;
+use App\Models\Quotation;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -87,6 +102,16 @@ class ProcurementProjectResource extends Resource
                 TextEntry::make('legal_regime')->label('Legal regime'),
                 TextEntry::make('description')->columnSpanFull()->placeholder('—'),
             ]),
+            Section::make('Evaluation ranking')->columnSpanFull()
+                ->visible(fn (ProcurementProject $record) => in_array($record->status, [ProcurementProjectStatus::Evaluation, ProcurementProjectStatus::PostQualification,
+                    ProcurementProjectStatus::Recommended, ProcurementProjectStatus::Awarded], true))
+                ->schema([
+                    TextEntry::make('ranking')->hiddenLabel()->listWithLineBreaks()
+                        ->state(fn (ProcurementProject $record) => app(Evaluation::class)->rank($record)->values()->map(fn (Offer $o, int $i) => sprintf(
+                            '%d. %s — %s — %s', $i + 1, $o->supplier()->name, Money::format($o->amount()),
+                            ! $o->complete ? 'evaluation in progress' : ($o->passed ? 'passed' : 'failed'),
+                        ))->all() ?: ['No offers.']),
+                ]),
         ]);
     }
 
@@ -195,6 +220,72 @@ class ProcurementProjectResource extends Resource
                         $data['justification'], $data['evidence'] ?? []), 'Mode proposed for BAC review');
                     $record->refresh();
                 }),
+            Action::make('evaluate')
+                ->label('Record evaluation')
+                ->icon('heroicon-o-pencil-square')
+                ->visible(fn (ProcurementProject $record) => $record->status === ProcurementProjectStatus::Evaluation && ($user()?->hasPermission('bid.evaluate') ?? false))
+                ->schema(fn (ProcurementProject $record) => [
+                    Select::make('offer')->label('Offer')->required()
+                        ->options(Evaluation::offers($record)->mapWithKeys(fn ($o) => [($o instanceof Bid ? 'bid:' : 'quotation:').$o->id => $o->supplier->name.' — '.Money::format((string) ($o instanceof Bid ? $o->bid_amount : $o->total_amount))])),
+                    Select::make('criterion_id')->label('Criterion')->required()->live()
+                        ->options($record->criteria()->whereNotNull('locked_at')->pluck('criterion', 'id')),
+                    Select::make('result')->options(['pass' => 'Pass', 'fail' => 'Fail'])
+                        ->visible(fn (Get $get) => EvaluationCriterion::find($get('criterion_id'))?->criterion_type === 'pass_fail')
+                        ->required(fn (Get $get) => EvaluationCriterion::find($get('criterion_id'))?->criterion_type === 'pass_fail'),
+                    TextInput::make('score')->numeric()->minValue(0)->maxValue(100)
+                        ->visible(fn (Get $get) => EvaluationCriterion::find($get('criterion_id'))?->criterion_type === 'rated'),
+                    Textarea::make('remarks'),
+                ])
+                ->action(function (ProcurementProject $record, array $data, Action $action) use ($user) {
+                    [$type, $id] = explode(':', $data['offer']);
+                    $offer = $type === 'bid' ? Bid::findOrFail($id) : Quotation::findOrFail($id);
+                    static::guarded($action, fn () => app(Evaluation::class)->evaluate($user(), $offer, EvaluationCriterion::findOrFail($data['criterion_id']),
+                        $data['result'] ?? 'score', isset($data['score']) ? (string) $data['score'] : null, $data['remarks'] ?? null), 'Evaluation recorded');
+                }),
+            Action::make('finishEvaluation')
+                ->label('Finish evaluation')
+                ->icon('heroicon-o-flag')
+                ->visible(fn (ProcurementProject $record) => $record->status === ProcurementProjectStatus::Evaluation && ($user()?->hasPermission('bac.recommend') ?? false))
+                ->requiresConfirmation()
+                ->action(function (ProcurementProject $record, Action $action) use ($user) {
+                    static::guarded($action, fn () => app(Evaluation::class)->finish($user(), $record), 'Evaluation completed');
+                    $record->refresh();
+                }),
+            Action::make('startPostQualification')
+                ->label('Post-qualify next offer')
+                ->icon('heroicon-o-magnifying-glass')
+                ->visible(fn (ProcurementProject $record) => $record->status === ProcurementProjectStatus::PostQualification
+                    && ($user()?->hasPermission('bid.evaluate') ?? false) && ! $record->postQualifications()->whereIn('result', ['pending', 'passed'])->exists())
+                ->requiresConfirmation()
+                ->action(fn (ProcurementProject $record, Action $action) => static::guarded($action, fn () => app(PostQualifications::class)->startNext($user(), $record), 'Post-qualification started')),
+            Action::make('recommendAward')
+                ->label('Recommend award')
+                ->icon('heroicon-o-trophy')->color('success')
+                ->visible(fn (ProcurementProject $record) => $record->status === ProcurementProjectStatus::PostQualification
+                    && ($user()?->hasPermission('bac.recommend') ?? false) && $record->postQualifications()->where('result', 'passed')->exists())
+                ->schema(fn (ProcurementProject $record) => [
+                    Select::make('resolution_id')->label('BAC resolution recommending award')->required()
+                        ->options(BacResolution::where('procurement_project_id', $record->id)->where('resolution_type', 'recommend_award')->pluck('resolution_no', 'id')),
+                ])
+                ->action(function (ProcurementProject $record, array $data, Action $action) use ($user) {
+                    static::guarded($action, fn () => app(Recommendation::class)->recommendAward($user(), $record, BacResolution::findOrFail($data['resolution_id'])), 'Award recommended');
+                    $record->refresh();
+                }),
+            Action::make('declareFailure')
+                ->label('Declare failure')
+                ->icon('heroicon-o-no-symbol')->color('danger')
+                ->visible(fn (ProcurementProject $record) => in_array($record->status, [ProcurementProjectStatus::Solicitation, ProcurementProjectStatus::Receipt,
+                    ProcurementProjectStatus::Evaluation, ProcurementProjectStatus::PostQualification, ProcurementProjectStatus::Recommended], true)
+                    && ($user()?->hasPermission('bac.recommend') ?? false))
+                ->schema(fn (ProcurementProject $record) => [
+                    Select::make('resolution_id')->label('BAC resolution declaring failure')->required()
+                        ->options(BacResolution::where('procurement_project_id', $record->id)->where('resolution_type', 'declare_failure')->pluck('resolution_no', 'id')),
+                ])
+                ->requiresConfirmation()
+                ->action(function (ProcurementProject $record, array $data, Action $action) use ($user) {
+                    static::guarded($action, fn () => app(Recommendation::class)->declareFailure($user(), $record, BacResolution::findOrFail($data['resolution_id'])), 'Failure declared');
+                    $record->refresh();
+                }),
             Action::make('cancelProject')
                 ->label('Cancel project')
                 ->icon('heroicon-o-x-circle')->color('danger')
@@ -216,6 +307,13 @@ class ProcurementProjectResource extends Resource
             JustificationsRelationManager::class,
             ItemsRelationManager::class,
             LotsRelationManager::class,
+            CriteriaRelationManager::class,
+            RfqsRelationManager::class,
+            QuotationsRelationManager::class,
+            BiddingsRelationManager::class,
+            BidsRelationManager::class,
+            PostQualificationsRelationManager::class,
+            ProtestsRelationManager::class,
             DeadlinesRelationManager::class,
             PublicationsRelationManager::class,
         ];

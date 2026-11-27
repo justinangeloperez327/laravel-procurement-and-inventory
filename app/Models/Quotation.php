@@ -22,6 +22,7 @@ class Quotation extends Model
         'validity_until',
         'status',
         'is_late',
+        'recorded_by',
     ];
 
     protected function casts(): array
@@ -47,5 +48,10 @@ class Quotation extends Model
     public function items(): HasMany
     {
         return $this->hasMany(QuotationItem::class, 'quotation_id');
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 }

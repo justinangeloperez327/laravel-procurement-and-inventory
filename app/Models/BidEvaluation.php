@@ -6,10 +6,18 @@ use App\Domain\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class BidEvaluation extends Model
 {
     use Auditable, HasFactory;
+
+    /** Evaluations are signed records; a correction is a new evaluation, never an edit. */
+    protected static function booted(): void
+    {
+        static::updating(fn () => throw new LogicException('Evaluations cannot be edited.'));
+        static::deleting(fn () => throw new LogicException('Evaluations cannot be deleted.'));
+    }
 
     protected $table = 'bid_evaluations';
 

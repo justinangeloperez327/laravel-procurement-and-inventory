@@ -100,6 +100,7 @@ return new class extends Migration
             $table->string('status', 16)->default('draft');
             $table->smallInteger('minimum_suppliers')->nullable();
             $table->foreignId('issued_by')->nullable()->constrained('users')->restrictOnDelete();
+            $table->timestampTz('closed_at')->nullable();
             $table->timestamps();
             $table->unique(['procurement_project_id', 'reference_no']);
         });
@@ -113,6 +114,7 @@ return new class extends Migration
             $table->date('validity_until')->nullable();
             $table->string('status', 32)->default('received');
             $table->boolean('is_late')->default(false);
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->unique(['rfq_id', 'supplier_id']);
         });
@@ -123,7 +125,7 @@ return new class extends Migration
             $table->foreignId('procurement_project_item_id')->constrained('procurement_project_items')->restrictOnDelete();
             $table->decimal('unit_price', 18, 4);
             $table->decimal('quantity', 18, 4);
-            $table->decimal('total', 18, 2);
+            $table->decimal('total', 18, 2)->storedAs('round(quantity * unit_price, 2)');
             $table->string('brand_model', 255)->nullable();
             $table->text('remarks')->nullable();
             $table->timestamps();
@@ -138,6 +140,9 @@ return new class extends Migration
             $table->timestampTz('bid_opening_at');
             $table->string('status', 16)->default('draft');
             $table->decimal('bidding_documents_fee', 18, 2)->nullable();
+            $table->foreignId('issued_by')->constrained('users')->restrictOnDelete();
+            $table->timestampTz('opened_at')->nullable();
+            $table->foreignId('opening_meeting_id')->nullable()->constrained('meetings')->restrictOnDelete();
             $table->timestamps();
             $table->unique(['procurement_project_id', 'reference_no']);
         });
@@ -154,6 +159,8 @@ return new class extends Migration
             $table->timestampTz('opened_at')->nullable();
             $table->foreignId('opened_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->string('status', 32)->default('submitted');
+            $table->foreignId('received_by')->constrained('users')->restrictOnDelete();
+            $table->timestampTz('withdrawn_at')->nullable();
             $table->timestamps();
             $table->unique(['receipt_reference']);
         });
@@ -179,6 +186,7 @@ return new class extends Migration
             $table->boolean('is_published')->default(false);
             $table->timestampTz('published_at')->nullable();
             $table->timestampTz('locked_at')->nullable();
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
 
@@ -207,6 +215,7 @@ return new class extends Migration
             $table->string('result', 16)->default('pending');
             $table->text('findings')->nullable();
             $table->foreignId('report_document_id')->nullable()->constrained('documents')->restrictOnDelete();
+            $table->foreignId('performed_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
 
@@ -216,7 +225,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE quotation_items ADD CONSTRAINT quotation_items_check_1 CHECK (quantity > 0)');
             DB::statement('ALTER TABLE quotation_items ADD CONSTRAINT quotation_items_check_2 CHECK (unit_price >= 0)');
             DB::statement('ALTER TABLE biddings ADD CONSTRAINT biddings_check_1 CHECK (bid_opening_at >= bid_submission_deadline)');
-            DB::statement('CREATE UNIQUE INDEX bids_one_per_supplier_lot ON bids (bidding_id, supplier_id, procurement_lot_id) NULLS NOT DISTINCT');
+            DB::statement('CREATE UNIQUE INDEX bids_one_per_supplier_lot ON bids (bidding_id, supplier_id, procurement_lot_id) NULLS NOT DISTINCT WHERE withdrawn_at IS NULL');
             DB::statement('ALTER TABLE bid_evaluations ADD CONSTRAINT bid_evaluations_check_1 CHECK ((bid_id IS NULL) <> (quotation_id IS NULL))');
             DB::statement('CREATE UNIQUE INDEX bid_evaluations_unique ON bid_evaluations (bid_id, quotation_id, evaluation_criterion_id, evaluator_id) NULLS NOT DISTINCT');
         }

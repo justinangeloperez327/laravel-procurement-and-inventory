@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Quotation;
 use App\Models\Rfq;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Quotation> */
@@ -22,6 +23,7 @@ class QuotationFactory extends Factory
             'validity_until' => null,
             'status' => 'received',
             'is_late' => false,
+            'recorded_by' => User::factory(),
         ];
     }
 }

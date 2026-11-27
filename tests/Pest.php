@@ -3,6 +3,8 @@
 use App\Domain\Approvals\DefaultWorkflows;
 use App\Domain\Bac\BacComposition;
 use App\Domain\Bac\BacMeetings;
+use App\Domain\Bidding\Evaluation;
+use App\Domain\Bidding\EvaluationCriteria;
 use App\Domain\Budget\ApproveBudgetAllocation;
 use App\Domain\Budget\CreateBudgetAllocation;
 use App\Domain\Compliance\ConflictDeclarations;
@@ -12,6 +14,8 @@ use App\Domain\Planning\ConsolidatePpmps;
 use App\Domain\Planning\CreateApp;
 use App\Domain\Planning\CreatePpmp;
 use App\Domain\Planning\PlanApproval;
+use App\Domain\Procurement\CreateProcurementProject;
+use App\Domain\Procurement\ModeSelection;
 use App\Domain\Regulatory\ApproveRuleVersion;
 use App\Domain\Requests\CreatePurchaseRequest;
 use App\Domain\Requests\PurchaseRequestWorkflow;
@@ -21,9 +25,11 @@ use App\Domain\Suppliers\RegisterSupplier;
 use App\Domain\Suppliers\SupplierDocuments;
 use App\Domain\Suppliers\SupplierDocumentTypes;
 use App\Enums\ApprovalDecision;
+use App\Enums\ProcurementCategory;
 use App\Enums\ProcurementMode;
 use App\Models\AccountCode;
 use App\Models\Agency;
+use App\Models\Bid;
 use App\Models\Department;
 use App\Models\FiscalYear;
 use App\Models\FundSource;
@@ -34,6 +40,7 @@ use App\Models\ProcurementModeDefinition;
 use App\Models\ProcurementModeRule;
 use App\Models\ProcurementProject;
 use App\Models\PurchaseRequest;
+use App\Models\Quotation;
 use App\Models\RegulatoryRuleVersion;
 use App\Models\RegulatorySource;
 use App\Models\Role;
@@ -302,5 +309,58 @@ function declareNoConflict(ProcurementProject $project, User ...$users): void
 {
     foreach ($users as $u) {
         app(ConflictDeclarations::class)->declare($u, $project, null, false);
+    }
+}
+
+/**
+ * procurementContext() plus three eligible suppliers, a second verifier, and helpers to bring a
+ * project to solicitation with two published pass/fail criteria.
+ */
+function biddingContext(): object
+{
+    Storage::fake('local');
+    $c = procurementContext();
+    $c->registrar = $c->secretariat;
+    $c->verifier = tap(User::factory()->forAgency($c->agency)->create(), fn (User $u) => grant($u, 'bac_secretariat'));
+    $c->suppliers = collect(['Alpha Trading', 'Bravo Supply', 'Charlie Corp'])->map(fn ($n) => eligibleSupplier($c, ['name' => $n]))->all();
+
+    return $c;
+}
+
+/** A project for one approved PR (₱25,000), with published criteria, at solicitation under $mode. */
+function projectInSolicitation(object $c, ProcurementMode $mode): ProcurementProject
+{
+    $project = app(CreateProcurementProject::class)($c->officer, $c->fy, 'Bond paper', ProcurementCategory::Goods,
+        [approvedRequest($c)->items()->value('id')]);
+    $criteria = app(EvaluationCriteria::class);
+    $criteria->add($c->officer, $project, 'Eligibility documents complete', 'pass_fail');
+    $criteria->add($c->officer, $project, 'Technical specifications met', 'pass_fail');
+    $criteria->publish($c->officer, $project);
+
+    $modes = app(ModeSelection::class);
+    $evidence = $mode === ProcurementMode::SmallValueProcurement ? ['canvass' => 'Canvass sheet'] : [];
+    $proposal = $modes->propose($c->officer, $project, $mode, 'Mode justification', $evidence);
+    declareNoConflict($project, $c->chair, $c->member1, $c->member2, $c->hope);
+    if ($mode === ProcurementMode::CompetitiveBidding) {
+        $modes->bacReview($c->chair, $proposal, ApprovalDecision::Endorsed);
+    } else {
+        $meeting = quorateMeeting($c, $project);
+        $resolution = app(BacMeetings::class)->adoptResolution($c->chair, $meeting, 'recommend_mode', 'Recommend mode');
+        $modes->bacReview($c->chair, $proposal, ApprovalDecision::Endorsed, null, $resolution);
+        $modes->hopeDecision($c->hope, $proposal->fresh(), ApprovalDecision::Approved);
+    }
+
+    return $project->fresh();
+}
+
+/** Both BAC members pass (or fail) the offer on every criterion. */
+function evaluateOffer(object $c, Bid|Quotation $offer, string $result = 'pass'): void
+{
+    $evaluation = app(Evaluation::class);
+    $project = Evaluation::projectOf($offer);
+    foreach ($project->criteria as $criterion) {
+        foreach ([$c->member1, $c->member2] as $evaluator) {
+            $evaluation->evaluate($evaluator, $offer, $criterion, $result);
+        }
     }
 }

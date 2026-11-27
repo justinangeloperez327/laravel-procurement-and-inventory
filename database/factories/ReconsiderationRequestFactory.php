@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\ProcurementProject;
 use App\Models\ReconsiderationRequest;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<ReconsiderationRequest> */
@@ -23,6 +24,7 @@ class ReconsiderationRequestFactory extends Factory
             'status' => 'filed',
             'decided_at' => null,
             'decision' => null,
+            'recorded_by' => User::factory(),
         ];
     }
 }

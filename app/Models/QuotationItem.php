@@ -18,7 +18,6 @@ class QuotationItem extends Model
         'procurement_project_item_id',
         'unit_price',
         'quantity',
-        'total',
         'brand_model',
         'remarks',
     ];

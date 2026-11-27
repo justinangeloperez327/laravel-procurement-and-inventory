@@ -13,8 +13,8 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | 4 | Purchase requests and budget reservation | Done — see [25-PHASE-4-STATUS.md](25-PHASE-4-STATUS.md) | 3 | M |
 | 5 | Supplier registry and compliance | Done — see [24-PHASE-5-STATUS.md](24-PHASE-5-STATUS.md) | 2 | M |
 | 6 | Procurement projects and mode screening | Done — see [26-PHASE-6-STATUS.md](26-PHASE-6-STATUS.md) | 4, 5 | L |
-| 7 | Solicitation, bidding and evaluation | Next | 6 | L |
-| 8 | Award, contracts and purchase orders | Schema ready | 7 | L |
+| 7 | Solicitation, bidding and evaluation | Done — see [27-PHASE-7-STATUS.md](27-PHASE-7-STATUS.md) | 6 | L |
+| 8 | Award, contracts and purchase orders | Next | 7 | L |
 | 9 | Delivery, receiving and inspection | Schema ready | 8 | M |
 | 10 | Inventory | Schema ready | 9 | L |
 | 11 | Property | Schema ready | 9, 10 | M |
@@ -88,7 +88,7 @@ Builds the services every later phase uses.
 **Tests:** ineligible mode is rejected; splitting flag is raised; actions require quorum.
 **Agency input:** current IRR, GPPB resolutions and thresholds with a named legal reviewer per rule. No hardcoded peso ceilings.
 
-### 7 — Solicitation, bidding and evaluation (L-07, L-08, L-12)
+### 7 — Solicitation, bidding and evaluation (L-07, L-08, L-12) ✅
 - RFQ and quotations for small value procurement and other alternative modes.
 - Bidding with sealed bids, immutable receipt timestamps and late-bid handling.
 - Authorized opening: amounts and sealed documents stay unreadable until then.

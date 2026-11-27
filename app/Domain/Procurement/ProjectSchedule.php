@@ -68,7 +68,7 @@ class ProjectSchedule
     /** Extending creates a new deadline linked to the original (docs/15 phase 6). */
     public function extendDeadline(User $actor, ProcurementDeadline $deadline, string $newDueAt, string $reason): ProcurementDeadline
     {
-        $project = $deadline->procurementProject;
+        $project = ProcurementProject::findOrFail($deadline->procurement_project_id);
         ProcurementGuard::require($actor, 'procurement.manage', $project);
         $this->assertOpen($project);
         if (blank($reason)) {

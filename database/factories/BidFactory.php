@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Bid;
 use App\Models\Bidding;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Bid> */
@@ -25,6 +26,7 @@ class BidFactory extends Factory
             'opened_at' => null,
             'opened_by' => null,
             'status' => 'submitted',
+            'received_by' => User::factory(),
         ];
     }
 }

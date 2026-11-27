@@ -6,11 +6,24 @@ use App\Domain\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 /** Published evaluation criteria; locked_at marks the point after which they may not be altered (docs/16). */
 class EvaluationCriterion extends Model
 {
     use Auditable, HasFactory;
+
+    /** Published criteria are locked; they can never be changed or removed (docs/16). */
+    protected static function booted(): void
+    {
+        $guard = function (self $criterion) {
+            if ($criterion->getOriginal('locked_at') !== null) {
+                throw new LogicException('Published evaluation criteria are locked and cannot be changed.');
+            }
+        };
+        static::updating($guard);
+        static::deleting($guard);
+    }
 
     protected $table = 'evaluation_criteria';
 
@@ -25,6 +38,7 @@ class EvaluationCriterion extends Model
         'is_published',
         'published_at',
         'locked_at',
+        'created_by',
     ];
 
     protected function casts(): array
@@ -46,5 +60,10 @@ class EvaluationCriterion extends Model
     public function procurementLot(): BelongsTo
     {
         return $this->belongsTo(ProcurementLot::class, 'procurement_lot_id');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -20,6 +20,8 @@ class ReconsiderationRequest extends Model
         'filed_at',
         'grounds',
         'status',
+        'recorded_by',
+        'decided_by',
         'decided_at',
         'decision',
     ];
@@ -45,5 +47,15 @@ class ReconsiderationRequest extends Model
     public function bacResolution(): BelongsTo
     {
         return $this->belongsTo(BacResolution::class, 'bac_resolution_id');
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function decidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decided_by');
     }
 }

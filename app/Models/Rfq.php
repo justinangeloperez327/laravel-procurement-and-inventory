@@ -23,11 +23,13 @@ class Rfq extends Model
         'status',
         'minimum_suppliers',
         'issued_by',
+        'closed_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'closed_at' => 'datetime',
             'issued_at' => 'datetime',
             'submission_deadline' => 'datetime',
             'minimum_suppliers' => 'integer',

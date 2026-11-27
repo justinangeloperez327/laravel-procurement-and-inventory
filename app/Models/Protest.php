@@ -22,6 +22,7 @@ class Protest extends Model
         'protest_fee',
         'status',
         'blocks_award',
+        'recorded_by',
         'decided_by',
         'decided_at',
         'decision',
@@ -50,5 +51,10 @@ class Protest extends Model
     public function decidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 }

@@ -22,11 +22,15 @@ class Bidding extends Model
         'bid_opening_at',
         'status',
         'bidding_documents_fee',
+        'issued_by',
+        'opened_at',
+        'opening_meeting_id',
     ];
 
     protected function casts(): array
     {
         return [
+            'opened_at' => 'datetime',
             'bid_submission_deadline' => 'datetime',
             'bid_opening_at' => 'datetime',
             'bidding_documents_fee' => 'decimal:2',
@@ -46,5 +50,15 @@ class Bidding extends Model
     public function bids(): HasMany
     {
         return $this->hasMany(Bid::class, 'bidding_id');
+    }
+
+    public function issuedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'issued_by');
+    }
+
+    public function openingMeeting(): BelongsTo
+    {
+        return $this->belongsTo(Meeting::class, 'opening_meeting_id');
     }
 }

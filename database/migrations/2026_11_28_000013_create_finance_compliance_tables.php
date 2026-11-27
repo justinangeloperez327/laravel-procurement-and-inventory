@@ -76,6 +76,7 @@ return new class extends Migration
             $table->decimal('protest_fee', 18, 2)->nullable();
             $table->string('status', 16)->default('filed');
             $table->boolean('blocks_award')->default(true);
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('decided_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('decided_at')->nullable();
             $table->text('decision')->nullable();
@@ -90,6 +91,8 @@ return new class extends Migration
             $table->timestampTz('filed_at');
             $table->text('grounds');
             $table->string('status', 16)->default('filed');
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
+            $table->foreignId('decided_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('decided_at')->nullable();
             $table->text('decision')->nullable();
             $table->timestamps();

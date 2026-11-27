@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\ProcurementProject;
 use App\Models\Protest;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Protest> */
@@ -25,6 +26,7 @@ class ProtestFactory extends Factory
             'decided_by' => null,
             'decided_at' => null,
             'decision' => null,
+            'recorded_by' => User::factory(),
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /** A procurement undertaking. legal_regime records the applicable law (docs/02 L-15). */
 class ProcurementProject extends Model
@@ -112,5 +113,45 @@ class ProcurementProject extends Model
     protected static function workflowColumns(): array
     {
         return ['status', 'procurement_mode_id', 'approved_budget', 'updated_at'];
+    }
+
+    public function criteria(): HasMany
+    {
+        return $this->hasMany(EvaluationCriterion::class, 'procurement_project_id')->orderBy('sequence');
+    }
+
+    public function rfqs(): HasMany
+    {
+        return $this->hasMany(Rfq::class, 'procurement_project_id');
+    }
+
+    public function biddings(): HasMany
+    {
+        return $this->hasMany(Bidding::class, 'procurement_project_id');
+    }
+
+    public function postQualifications(): HasMany
+    {
+        return $this->hasMany(PostQualification::class, 'procurement_project_id');
+    }
+
+    public function protests(): HasMany
+    {
+        return $this->hasMany(Protest::class, 'procurement_project_id');
+    }
+
+    public function reconsiderationRequests(): HasMany
+    {
+        return $this->hasMany(ReconsiderationRequest::class, 'procurement_project_id');
+    }
+
+    public function bids(): HasManyThrough
+    {
+        return $this->hasManyThrough(Bid::class, Bidding::class, 'procurement_project_id', 'bidding_id');
+    }
+
+    public function quotations(): HasManyThrough
+    {
+        return $this->hasManyThrough(Quotation::class, Rfq::class, 'procurement_project_id', 'rfq_id');
     }
 }
