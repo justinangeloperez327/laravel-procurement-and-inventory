@@ -23,7 +23,6 @@ class PurchaseRequestItemFactory extends Factory
             'unit_of_measure_id' => UnitOfMeasure::factory(),
             'quantity' => fake()->numberBetween(1, 50),
             'estimated_unit_cost' => fake()->randomFloat(2, 10, 5000),
-            'estimated_total' => fake()->randomFloat(2, 100, 100000),
         ];
     }
 }

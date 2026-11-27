@@ -39,8 +39,8 @@ enum PurchaseRequestStatus: string implements HasTransitions
         return match ($this) {
             self::Draft => [self::Submitted, self::Cancelled],
             self::Submitted => [self::DepartmentReview, self::Returned, self::Cancelled],
-            self::DepartmentReview => [self::BudgetReview, self::Returned, self::Rejected],
-            self::BudgetReview => [self::Approved, self::Returned, self::Rejected],
+            self::DepartmentReview => [self::BudgetReview, self::Returned, self::Rejected, self::Cancelled],
+            self::BudgetReview => [self::Approved, self::Returned, self::Rejected, self::Cancelled],
             self::Approved => [self::Procurement, self::Cancelled],
             self::Procurement => [self::Fulfilled, self::Cancelled],
             self::Returned => [self::Submitted, self::Cancelled],

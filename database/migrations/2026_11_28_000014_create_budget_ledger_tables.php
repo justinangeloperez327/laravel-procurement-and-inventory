@@ -22,6 +22,8 @@ return new class extends Migration
             $table->foreignId('reserved_by')->constrained('users')->restrictOnDelete();
             $table->timestampTz('reserved_at');
             $table->timestampTz('released_at')->nullable();
+            $table->foreignId('released_by')->nullable()->constrained('users')->restrictOnDelete();
+            $table->text('release_reason')->nullable();
             $table->string('idempotency_key', 128);
             $table->timestamps();
             $table->unique(['idempotency_key']);
@@ -56,6 +58,7 @@ return new class extends Migration
         });
 
         if (DB::getDriverName() === 'pgsql') {
+            DB::statement("CREATE UNIQUE INDEX budget_reservations_one_active_per_pr ON budget_reservations (purchase_request_id) WHERE status = 'active' AND purchase_request_id IS NOT NULL");
             DB::statement('ALTER TABLE budget_reservations ADD CONSTRAINT budget_reservations_check_1 CHECK (amount > 0)');
             DB::statement("ALTER TABLE budget_reservations ADD CONSTRAINT budget_reservations_check_2 CHECK (status IN ('active','converted','released'))");
             DB::statement('ALTER TABLE budget_obligations ADD CONSTRAINT budget_obligations_check_1 CHECK (amount > 0)');

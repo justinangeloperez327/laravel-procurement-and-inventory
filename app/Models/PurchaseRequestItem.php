@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\BelongsToEditableParent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseRequestItem extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, BelongsToEditableParent, HasFactory;
 
     protected $table = 'purchase_request_items';
 
@@ -22,7 +23,6 @@ class PurchaseRequestItem extends Model
         'unit_of_measure_id',
         'quantity',
         'estimated_unit_cost',
-        'estimated_total',
     ];
 
     protected function casts(): array
@@ -52,5 +52,10 @@ class PurchaseRequestItem extends Model
     public function unitOfMeasure(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
+    }
+
+    protected function editableParent(): ?object
+    {
+        return $this->purchaseRequest;
     }
 }

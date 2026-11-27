@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Domain\Approvals\Approvable;
 use App\Domain\Approvals\HasApprovals;
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\FreezesWhenFinal;
 use App\Enums\PurchaseRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseRequest extends Model implements Approvable
 {
-    use Auditable, HasApprovals, HasFactory;
+    use Auditable, FreezesWhenFinal, HasApprovals, HasFactory;
 
     protected $table = 'purchase_requests';
 
@@ -33,6 +34,8 @@ class PurchaseRequest extends Model implements Approvable
         'approved_by',
         'approved_at',
         'cancellation_reason',
+        'plan_exception_basis',
+        'plan_exception_reason',
     ];
 
     protected function casts(): array
@@ -108,5 +111,30 @@ class PurchaseRequest extends Model implements Approvable
     public function approvalInitiatorId(): ?int
     {
         return $this->requested_by;
+    }
+
+    public static function editableStatuses(): array
+    {
+        return [PurchaseRequestStatus::Draft, PurchaseRequestStatus::Returned];
+    }
+
+    protected static function workflowColumns(): array
+    {
+        return ['status', 'submitted_at', 'approved_by', 'approved_at', 'total_amount', 'cancellation_reason', 'updated_at'];
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(BudgetReservation::class, 'purchase_request_id');
+    }
+
+    public function activeReservation(): ?BudgetReservation
+    {
+        return $this->reservations()->where('status', 'active')->first();
+    }
+
+    public function hasPlanException(): bool
+    {
+        return filled($this->plan_exception_basis);
     }
 }

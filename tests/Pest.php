@@ -1,19 +1,32 @@
 <?php
 
 use App\Domain\Approvals\DefaultWorkflows;
+use App\Domain\Budget\ApproveBudgetAllocation;
+use App\Domain\Budget\CreateBudgetAllocation;
 use App\Domain\Identity\GrantRole;
 use App\Domain\Identity\SyncRoleCatalog;
+use App\Domain\Planning\ConsolidatePpmps;
+use App\Domain\Planning\CreateApp;
+use App\Domain\Planning\CreatePpmp;
+use App\Domain\Planning\PlanApproval;
+use App\Domain\Requests\CreatePurchaseRequest;
 use App\Domain\Suppliers\BeneficialOwnership;
 use App\Domain\Suppliers\ManageSupplierStatus;
 use App\Domain\Suppliers\RegisterSupplier;
 use App\Domain\Suppliers\SupplierDocuments;
 use App\Domain\Suppliers\SupplierDocumentTypes;
+use App\Enums\ApprovalDecision;
+use App\Enums\ProcurementMode;
+use App\Models\AccountCode;
 use App\Models\Agency;
 use App\Models\Department;
 use App\Models\FiscalYear;
+use App\Models\FundSource;
+use App\Models\PurchaseRequest;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\Supplier;
+use App\Models\UnitOfMeasure;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -163,4 +176,43 @@ function eligibleSupplier(object $c, array $attributes = []): Supplier
     $owners->verify($c->verifier, $owners->declare($c->registrar, $supplier, 'Juan dela Cruz', '100', 'Filipino'));
 
     return app(ManageSupplierStatus::class)->activate($c->verifier, $supplier->fresh());
+}
+
+/**
+ * planningContext() plus a department requester, an approved APP with one item (₱100,000 of SVP
+ * supplies), and an approved ₱1,000,000 allotment for the department.
+ */
+function requestContext(): object
+{
+    $c = planningContext();
+    $c->requester = tap(User::factory()->forAgency($c->agency)->create(), fn (User $u) => grant($u, 'end_user', $c->dept));
+    $c->uom = UnitOfMeasure::factory()->create();
+
+    $plans = app(PlanApproval::class);
+    $ppmp = app(CreatePpmp::class)($c->planner, $c->dept, $c->fy);
+    $ppmp->items()->create(['description' => 'Office supplies', 'unit_of_measure_id' => $c->uom->id, 'quantity' => 400,
+        'estimated_unit_cost' => '250.00', 'proposed_mode' => ProcurementMode::SmallValueProcurement]);
+    $plans->submit($c->planner, $ppmp);
+    $plans->decide($c->head, $ppmp, ApprovalDecision::Approved);
+    $version = app(CreateApp::class)($c->appPlanner, $c->fy);
+    app(ConsolidatePpmps::class)($c->appPlanner, $version);
+    $plans->submit($c->appPlanner, $version);
+    $plans->decide($c->hope, $version, ApprovalDecision::Approved);
+    $c->appItem = $version->items()->sole();
+
+    $c->allocation = app(ApproveBudgetAllocation::class)($c->budget2, app(CreateBudgetAllocation::class)(
+        $c->budget, $c->fy, FundSource::factory()->create(['agency_id' => $c->agency->id]),
+        AccountCode::factory()->create(), '1000000.00', 'SARO-2027-0001', $c->dept,
+    ));
+
+    return $c;
+}
+
+/** A draft PR for the context's department with one line of $qty × $cost. */
+function draftRequest(object $c, string $qty = '100', string $cost = '250.00', bool $linked = true): PurchaseRequest
+{
+    $pr = app(CreatePurchaseRequest::class)($c->requester, $c->dept, $c->fy, 'Office supplies for Q1', $linked ? $c->appItem : null);
+    $pr->items()->create(['description' => 'Bond paper, A4', 'unit_of_measure_id' => $c->uom->id, 'quantity' => $qty, 'estimated_unit_cost' => $cost]);
+
+    return $pr;
 }

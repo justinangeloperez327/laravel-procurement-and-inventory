@@ -30,6 +30,9 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('approved_at')->nullable();
             $table->text('cancellation_reason')->nullable();
+            // A purchase not covered by the approved APP needs a documented lawful basis and compliance review.
+            $table->string('plan_exception_basis', 255)->nullable();
+            $table->text('plan_exception_reason')->nullable();
             $table->timestamps();
             $table->unique(['agency_id', 'reference_no']);
             $table->index(['status']);
@@ -45,7 +48,8 @@ return new class extends Migration
             $table->foreignId('unit_of_measure_id')->constrained('units_of_measure')->restrictOnDelete();
             $table->decimal('quantity', 18, 4);
             $table->decimal('estimated_unit_cost', 18, 4);
-            $table->decimal('estimated_total', 18, 2);
+            // Exact decimal arithmetic in the database.
+            $table->decimal('estimated_total', 18, 2)->storedAs('round(quantity * estimated_unit_cost, 2)');
             $table->timestamps();
         });
 

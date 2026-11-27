@@ -10,9 +10,9 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | 1 | Identity and organization | Done; MFA and audit export moved to phase 14 | 0 | — |
 | 2 | Shared services and master data | Done — see [22-PHASE-2-STATUS.md](22-PHASE-2-STATUS.md) | 1 | M |
 | 3 | Planning and budget allocations | Done — see [23-PHASE-3-STATUS.md](23-PHASE-3-STATUS.md) | 2 | L |
-| 4 | Purchase requests and budget reservation | Next | 3 | M |
+| 4 | Purchase requests and budget reservation | Done — see [25-PHASE-4-STATUS.md](25-PHASE-4-STATUS.md) | 3 | M |
 | 5 | Supplier registry and compliance | Done — see [24-PHASE-5-STATUS.md](24-PHASE-5-STATUS.md) | 2 | M |
-| 6 | Procurement projects and mode screening | Schema ready | 4, 5 | L |
+| 6 | Procurement projects and mode screening | Next | 4, 5 | L |
 | 7 | Solicitation, bidding and evaluation | Schema ready | 6 | L |
 | 8 | Award, contracts and purchase orders | Schema ready | 7 | L |
 | 9 | Delivery, receiving and inspection | Schema ready | 8 | M |
@@ -63,7 +63,7 @@ Builds the services every later phase uses.
 **Tests:** unapproved APP cannot be used; revision history is preserved; adjustment ledger reconciles.
 **Agency input:** account code (UACS) list, fund sources and the PPMP/APP formats.
 
-### 4 — Purchase requests and budget reservation (L-01)
+### 4 — Purchase requests and budget reservation (L-01) ✅
 - PR state machine (doc 07) with department and budget review through the approval engine.
 - Each PR must link to an approved APP item, or go through a documented lawful exception.
 - Budget certification and atomic reservation under row locks. Reservations are released on rejection or cancellation.

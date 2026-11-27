@@ -26,3 +26,4 @@ This documentation describes the planned Laravel procurement and inventory manag
 22. [Phase 2 Status — Shared Services and Master Data](22-PHASE-2-STATUS.md)
 23. [Phase 3 Status — Planning and Budget Allocations](23-PHASE-3-STATUS.md)
 24. [Phase 5 Status — Supplier Registry and Compliance](24-PHASE-5-STATUS.md)
+25. [Phase 4 Status — Purchase Requests and Budget Reservation](25-PHASE-4-STATUS.md)

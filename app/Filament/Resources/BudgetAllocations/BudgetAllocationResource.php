@@ -13,6 +13,7 @@ use App\Filament\Resources\BudgetAllocations\Pages\EditBudgetAllocation;
 use App\Filament\Resources\BudgetAllocations\Pages\ListBudgetAllocations;
 use App\Filament\Resources\BudgetAllocations\Pages\ViewBudgetAllocation;
 use App\Filament\Resources\BudgetAllocations\RelationManagers\AdjustmentsRelationManager;
+use App\Filament\Resources\BudgetAllocations\RelationManagers\ReservationsRelationManager;
 use App\Models\BudgetAllocation;
 use App\Models\FiscalYear;
 use BackedEnum;
@@ -172,7 +173,7 @@ class BudgetAllocationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [AdjustmentsRelationManager::class];
+        return [ReservationsRelationManager::class, AdjustmentsRelationManager::class];
     }
 
     public static function getPages(): array
