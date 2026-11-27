@@ -1,0 +1,21 @@
+# GPIMS Documentation
+
+This documentation describes the planned Laravel procurement and inventory management system for a Philippine government agency. It is design guidance, not a certification of statutory compliance.
+
+1. [Project Overview](01-PROJECT-OVERVIEW.md)
+2. [Legal Compliance Matrix](02-LEGAL-COMPLIANCE-MATRIX.md)
+3. [Software Requirements](03-SOFTWARE-REQUIREMENTS.md)
+4. [System Architecture](04-SYSTEM-ARCHITECTURE.md)
+5. [Database Schema](05-DATABASE-SCHEMA.md)
+6. [Roles and Permissions](06-USER-ROLES-PERMISSIONS.md)
+7. [Procurement Workflows](07-PROCUREMENT-WORKFLOWS.md)
+8. [Procurement Mode Rules](08-PROCUREMENT-MODE-RULES.md)
+9. [Budget Workflow](09-BUDGET-WORKFLOW.md)
+10. [Inventory Workflow](10-INVENTORY-WORKFLOW.md)
+11. [Property Management](11-PROPERTY-MANAGEMENT.md)
+12. [Document Register](12-DOCUMENT-REGISTER.md)
+13. [API Specification](13-API-SPECIFICATION.md)
+14. [Security Requirements](14-SECURITY-REQUIREMENTS.md)
+15. [Implementation Roadmap](15-IMPLEMENTATION-ROADMAP.md)
+16. [Testing Strategy](16-TESTING-STRATEGY.md)
+17. [Deployment Guide](17-DEPLOYMENT-GUIDE.md)
