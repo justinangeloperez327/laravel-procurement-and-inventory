@@ -1,6 +1,8 @@
 <?php
+
 use App\Models\User;
 use Filament\Panel;
+
 it('requires explicit admin access', function () {
     $user = new User;
     $panel = Panel::make()->id('admin');

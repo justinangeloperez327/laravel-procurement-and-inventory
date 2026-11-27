@@ -1,6 +1,6 @@
 # 17 — Deployment and Bootstrap Guide
 
-**Current repository status:** documentation and initialization only. Laravel application scaffold has not been generated.
+**Current repository status:** Laravel 13 / Filament 5 application scaffold with phase 1 identity module. See [19-PHASE-0-STATUS.md](19-PHASE-0-STATUS.md) for bootstrap steps; the generic bootstrap below is retained for reference.
 
 ## Local prerequisites
 Composer, PHP supported by selected Laravel release, PostgreSQL, Node.js/npm and Git. Validate versions before bootstrapping.

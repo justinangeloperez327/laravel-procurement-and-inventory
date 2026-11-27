@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
+use App\Domain\Identity\SyncRoleCatalog;
 use Illuminate\Support\Facades\Artisan;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Artisan::command('gpims:sync-roles', function (SyncRoleCatalog $sync) {
+    $sync();
+    $this->info('Role and permission catalog synchronized.');
+})->purpose('Create or update the default roles and permissions from App\Domain\Identity\RoleCatalog');
