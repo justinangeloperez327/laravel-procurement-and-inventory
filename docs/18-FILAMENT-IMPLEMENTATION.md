@@ -1,6 +1,6 @@
 # Filament application architecture
 
-Decision: Filament is the primary authenticated internal UI, replacing hand-built administrative Blade/Livewire screens. Target Laravel 13, PHP 8.4, PostgreSQL and a compatible stable Filament release (verify Composer resolution before locking versions).
+Decision: Filament is the primary authenticated internal UI, replacing hand-built administrative Blade/Livewire screens. Target Laravel 13, PHP 8.5, PostgreSQL and a compatible stable Filament release (verify Composer resolution before locking versions).
 
 ## Panel
 One internal panel at /admin, with login and no public registration. Enforce panel access and resource policies; no default production credentials. Separate supplier portal only when authorized.
