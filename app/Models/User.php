@@ -32,6 +32,7 @@ class User extends Authenticatable implements \Filament\Models\Contracts\Filamen
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 }
