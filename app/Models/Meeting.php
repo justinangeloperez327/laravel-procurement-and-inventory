@@ -7,10 +7,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 class Meeting extends Model
 {
     use Auditable, HasFactory;
+
+    /** A held meeting (attendance and quorum recorded) is frozen, except for attaching minutes. */
+    protected static function booted(): void
+    {
+        static::updating(function (self $meeting) {
+            if ($meeting->getOriginal('held_at') !== null && array_diff(array_keys($meeting->getDirty()), ['minutes_document_id', 'updated_at']) !== []) {
+                throw new LogicException('Held meetings cannot be changed.');
+            }
+        });
+        static::deleting(fn (self $meeting) => $meeting->getOriginal('held_at') === null ?: throw new LogicException('Held meetings cannot be deleted.'));
+    }
 
     protected $table = 'meetings';
 

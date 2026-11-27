@@ -6,10 +6,18 @@ use App\Domain\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class BacResolution extends Model
 {
     use Auditable, HasFactory;
+
+    /** Adopted resolutions are part of the record; issue a new resolution to amend one. */
+    protected static function booted(): void
+    {
+        static::updating(fn () => throw new LogicException('BAC resolutions cannot be edited.'));
+        static::deleting(fn () => throw new LogicException('BAC resolutions cannot be deleted.'));
+    }
 
     protected $table = 'bac_resolutions';
 
@@ -23,6 +31,7 @@ class BacResolution extends Model
         'body',
         'adopted_on',
         'document_id',
+        'recorded_by',
     ];
 
     protected function casts(): array
@@ -50,5 +59,10 @@ class BacResolution extends Model
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'document_id');
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 }

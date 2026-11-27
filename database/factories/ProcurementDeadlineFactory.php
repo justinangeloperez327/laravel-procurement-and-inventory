@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ProcurementDeadline;
 use App\Models\ProcurementProject;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<ProcurementDeadline> */
@@ -21,6 +22,7 @@ class ProcurementDeadlineFactory extends Factory
             'regulatory_rule_version_id' => null,
             'extended_from_id' => null,
             'extension_reason' => null,
+            'created_by' => User::factory(),
         ];
     }
 }

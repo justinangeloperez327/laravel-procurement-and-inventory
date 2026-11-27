@@ -45,20 +45,24 @@ final class RoleCatalog
         'supplier.verify' => 'Verify supplier documents and ownership, and activate suppliers',
         'supplier.sanction' => 'Record and lift supplier suspensions and blacklisting',
         'compliance.review' => 'Review compliance flags and conflict-of-interest declarations',
+        'procurement.manage' => 'Create procurement projects from approved purchase requests and manage their schedule',
+        'procurement_mode.approve' => 'Approve the use of an alternative procurement mode (HoPE)',
+        'bac.constitute' => 'Constitute BAC committees and designate members (HoPE)',
+        'bac.meeting' => 'Schedule BAC meetings and record attendance',
     ];
 
     /** @var array<string, array{name: string, permissions: list<string>, read_only?: bool}> */
     public const ROLES = [
         'system_administrator' => ['name' => 'System Administrator', 'permissions' => []],
-        'hope' => ['name' => 'Head of Procuring Entity (HoPE)', 'permissions' => ['app.approve', 'award.approve', 'supplier.sanction', 'compliance.review']],
+        'hope' => ['name' => 'Head of Procuring Entity (HoPE)', 'permissions' => ['app.approve', 'award.approve', 'supplier.sanction', 'compliance.review', 'procurement_mode.approve', 'bac.constitute']],
         'department_head' => ['name' => 'Department Head', 'permissions' => ['ppmp.approve', 'purchase_request.approve']],
         'end_user' => ['name' => 'End User', 'permissions' => ['purchase_request.create', 'purchase_request.submit']],
         'planning_officer' => ['name' => 'Planning Officer', 'permissions' => ['ppmp.create', 'app.consolidate']],
         'budget_officer' => ['name' => 'Budget Officer', 'permissions' => ['budget.certify', 'budget.reserve', 'budget.master_data', 'budget.allocate']],
-        'procurement_officer' => ['name' => 'Procurement Officer', 'permissions' => ['rfq.manage', 'contract.manage', 'regulatory_rule.manage', 'supplier.manage', 'supplier.sanction']],
-        'bac_chair' => ['name' => 'BAC Chair', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend', 'compliance.review']],
+        'procurement_officer' => ['name' => 'Procurement Officer', 'permissions' => ['rfq.manage', 'contract.manage', 'regulatory_rule.manage', 'supplier.manage', 'supplier.sanction', 'procurement.manage']],
+        'bac_chair' => ['name' => 'BAC Chair', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend', 'compliance.review', 'bac.meeting']],
         'bac_member' => ['name' => 'BAC Member', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend']],
-        'bac_secretariat' => ['name' => 'BAC Secretariat', 'permissions' => ['rfq.manage', 'supplier.manage', 'supplier.verify']],
+        'bac_secretariat' => ['name' => 'BAC Secretariat', 'permissions' => ['rfq.manage', 'supplier.manage', 'supplier.verify', 'procurement.manage', 'bac.meeting']],
         'twg_member' => ['name' => 'TWG Member', 'permissions' => ['bid.evaluate']],
         'observer' => ['name' => 'Observer', 'permissions' => [], 'read_only' => true],
         'receiving_officer' => ['name' => 'Receiving Officer', 'permissions' => ['delivery.receive']],

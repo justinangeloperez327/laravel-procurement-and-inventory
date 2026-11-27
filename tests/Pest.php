@@ -1,15 +1,20 @@
 <?php
 
 use App\Domain\Approvals\DefaultWorkflows;
+use App\Domain\Bac\BacComposition;
+use App\Domain\Bac\BacMeetings;
 use App\Domain\Budget\ApproveBudgetAllocation;
 use App\Domain\Budget\CreateBudgetAllocation;
+use App\Domain\Compliance\ConflictDeclarations;
 use App\Domain\Identity\GrantRole;
 use App\Domain\Identity\SyncRoleCatalog;
 use App\Domain\Planning\ConsolidatePpmps;
 use App\Domain\Planning\CreateApp;
 use App\Domain\Planning\CreatePpmp;
 use App\Domain\Planning\PlanApproval;
+use App\Domain\Regulatory\ApproveRuleVersion;
 use App\Domain\Requests\CreatePurchaseRequest;
+use App\Domain\Requests\PurchaseRequestWorkflow;
 use App\Domain\Suppliers\BeneficialOwnership;
 use App\Domain\Suppliers\ManageSupplierStatus;
 use App\Domain\Suppliers\RegisterSupplier;
@@ -22,7 +27,15 @@ use App\Models\Agency;
 use App\Models\Department;
 use App\Models\FiscalYear;
 use App\Models\FundSource;
+use App\Models\Item;
+use App\Models\ItemCategory;
+use App\Models\Meeting;
+use App\Models\ProcurementModeDefinition;
+use App\Models\ProcurementModeRule;
+use App\Models\ProcurementProject;
 use App\Models\PurchaseRequest;
+use App\Models\RegulatoryRuleVersion;
+use App\Models\RegulatorySource;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\Supplier;
@@ -215,4 +228,79 @@ function draftRequest(object $c, string $qty = '100', string $cost = '250.00', b
     $pr->items()->create(['description' => 'Bond paper, A4', 'unit_of_measure_id' => $c->uom->id, 'quantity' => $qty, 'estimated_unit_cost' => $cost]);
 
     return $pr;
+}
+
+/**
+ * requestContext() plus procurement: procurement mode rows, a procurement officer, a constituted BAC
+ * (chair, two members, secretariat), a legal reviewer, and an approved Small Value Procurement rule
+ * (goods, ABC at most ₱50,000, canvass evidence required).
+ */
+function procurementContext(): object
+{
+    $c = requestContext();
+    foreach (ProcurementMode::cases() as $mode) {
+        ProcurementModeDefinition::updateOrCreate(['code' => $mode], ['name' => $mode->label()]);
+    }
+    $user = fn (string $role) => tap(User::factory()->forAgency($c->agency)->create(), fn (User $u) => grant($u, $role));
+    $c->officer = $user('procurement_officer');
+    $c->secretariat = $user('bac_secretariat');
+    $c->chair = $user('bac_chair');
+    $c->member1 = $user('bac_member');
+    $c->member2 = $user('bac_member');
+    $c->lawyer = $user('legal_reviewer');
+
+    $bac = app(BacComposition::class);
+    $c->committee = $bac->constitute($c->hope, 'BAC for Goods', 'goods', 'OO-2027-001', now()->subMonth()->toDateString());
+    $bac->addMember($c->hope, $c->committee, $c->chair, 'chair', 'OO-2027-001', now()->subMonth()->toDateString());
+    $bac->addMember($c->hope, $c->committee, $c->member1, 'member', 'OO-2027-001', now()->subMonth()->toDateString());
+    $bac->addMember($c->hope, $c->committee, $c->member2, 'member', 'OO-2027-001', now()->subMonth()->toDateString());
+    $bac->addMember($c->hope, $c->committee, $c->secretariat, 'secretariat', 'OO-2027-001', now()->subMonth()->toDateString());
+
+    $source = RegulatorySource::factory()->create(['reference' => 'RA 12009 IRR']);
+    $c->svpRule = RegulatoryRuleVersion::factory()->create([
+        'regulatory_source_id' => $source->id, 'rule_code' => 'SVP-GOODS', 'version' => 1, 'provision' => 'Small value procurement',
+        'legal_reference' => 'IRR (test fixture)', 'approved_interpretation' => 'Test fixture threshold, not an authoritative amount.',
+        'test_reference' => 'tests/Feature/Procurement', 'effective_from' => '2020-01-01', 'effective_to' => null, 'status' => 'draft',
+        'conditions' => ['abc_max' => '50000.00', 'categories' => 'goods', 'requires_evidence' => 'canvass'],
+        'prepared_by' => $c->officer->id,
+    ]);
+    app(ApproveRuleVersion::class)($c->lawyer, $c->svpRule);
+    ProcurementModeRule::create([
+        'procurement_mode_id' => ProcurementModeDefinition::where('code', 'small_value_procurement')->value('id'),
+        'regulatory_rule_version_id' => $c->svpRule->id, 'rule_type' => 'eligibility', 'is_blocking' => true,
+    ]);
+    $c->category = ItemCategory::factory()->create(['name' => 'Office supplies']);
+    $c->paper = Item::factory()->create(['agency_id' => $c->agency->id, 'item_category_id' => $c->category->id, 'name' => 'Bond paper']);
+
+    return $c;
+}
+
+/** An approved, funded purchase request with one catalog line of $qty × $cost. */
+function approvedRequest(object $c, string $qty = '100', string $cost = '250.00'): PurchaseRequest
+{
+    $pr = app(CreatePurchaseRequest::class)($c->requester, $c->dept, $c->fy, 'Supplies', $c->appItem);
+    $pr->items()->create(['item_id' => $c->paper->id, 'description' => 'Bond paper', 'unit_of_measure_id' => $c->uom->id, 'quantity' => $qty, 'estimated_unit_cost' => $cost]);
+    $flow = app(PurchaseRequestWorkflow::class);
+    $flow->submit($c->requester, $pr);
+    $flow->approve($c->head, $pr);
+    $flow->certifyFunds($c->budget, $pr, $c->allocation);
+
+    return $pr->fresh();
+}
+
+/** A held BAC meeting with the chair and both members present. */
+function quorateMeeting(object $c, ?ProcurementProject $project = null): Meeting
+{
+    $meetings = app(BacMeetings::class);
+    $meeting = $meetings->schedule($c->secretariat, $c->committee, 'regular', now()->toDateTimeString(), $project);
+
+    return $meetings->recordHeld($c->secretariat, $meeting, [$c->chair->id, $c->member1->id, $c->member2->id]);
+}
+
+/** Declares "no conflict" for each user on the project. */
+function declareNoConflict(ProcurementProject $project, User ...$users): void
+{
+    foreach ($users as $u) {
+        app(ConflictDeclarations::class)->declare($u, $project, null, false);
+    }
 }

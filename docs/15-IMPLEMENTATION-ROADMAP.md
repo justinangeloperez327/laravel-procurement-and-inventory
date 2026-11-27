@@ -12,8 +12,8 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | 3 | Planning and budget allocations | Done — see [23-PHASE-3-STATUS.md](23-PHASE-3-STATUS.md) | 2 | L |
 | 4 | Purchase requests and budget reservation | Done — see [25-PHASE-4-STATUS.md](25-PHASE-4-STATUS.md) | 3 | M |
 | 5 | Supplier registry and compliance | Done — see [24-PHASE-5-STATUS.md](24-PHASE-5-STATUS.md) | 2 | M |
-| 6 | Procurement projects and mode screening | Next | 4, 5 | L |
-| 7 | Solicitation, bidding and evaluation | Schema ready | 6 | L |
+| 6 | Procurement projects and mode screening | Done — see [26-PHASE-6-STATUS.md](26-PHASE-6-STATUS.md) | 4, 5 | L |
+| 7 | Solicitation, bidding and evaluation | Next | 6 | L |
 | 8 | Award, contracts and purchase orders | Schema ready | 7 | L |
 | 9 | Delivery, receiving and inspection | Schema ready | 8 | M |
 | 10 | Inventory | Schema ready | 9 | L |
@@ -78,7 +78,7 @@ Builds the services every later phase uses.
 
 **Tests:** a sanctioned or ineligible supplier cannot be invited or awarded; expiry raises a flag.
 
-### 6 — Procurement projects and mode screening (L-04, L-05, L-06)
+### 6 — Procurement projects and mode screening (L-04, L-05, L-06) ✅
 - Procurement projects and lots built from approved PR lines.
 - Mode screening against approved rule versions, with justification and reviewer decision.
 - Flags for related sub-threshold purchases that suggest splitting.

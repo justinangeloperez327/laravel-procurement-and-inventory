@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\BacCommittee;
 use App\Models\BacResolution;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<BacResolution> */
@@ -23,6 +24,7 @@ class BacResolutionFactory extends Factory
             'body' => null,
             'adopted_on' => now(),
             'document_id' => null,
+            'recorded_by' => User::factory(),
         ];
     }
 }

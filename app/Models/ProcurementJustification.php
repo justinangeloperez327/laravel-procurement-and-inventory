@@ -26,11 +26,18 @@ class ProcurementJustification extends Model
         'reviewed_at',
         'decision',
         'decision_remarks',
+        'status',
+        'screening_result',
+        'approved_by',
+        'approved_at',
+        'bac_resolution_id',
     ];
 
     protected function casts(): array
     {
         return [
+            'screening_result' => 'array',
+            'approved_at' => 'datetime',
             'evidence' => 'array',
             'reviewed_at' => 'datetime',
             'decision' => ApprovalDecision::class,
@@ -60,5 +67,15 @@ class ProcurementJustification extends Model
     public function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function bacResolution(): BelongsTo
+    {
+        return $this->belongsTo(BacResolution::class, 'bac_resolution_id');
     }
 }

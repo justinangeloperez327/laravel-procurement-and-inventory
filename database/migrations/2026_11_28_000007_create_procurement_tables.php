@@ -88,6 +88,11 @@ return new class extends Migration
             $table->timestampTz('reviewed_at')->nullable();
             $table->string('decision', 40)->nullable();
             $table->text('decision_remarks')->nullable();
+            // proposed -> endorsed (BAC) -> approved (HoPE, alternative modes) | returned | rejected
+            $table->string('status', 16)->default('proposed');
+            $table->jsonb('screening_result')->nullable();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->restrictOnDelete();
+            $table->timestampTz('approved_at')->nullable();
             $table->timestamps();
         });
 
@@ -112,6 +117,7 @@ return new class extends Migration
             $table->foreignId('regulatory_rule_version_id')->nullable()->constrained('regulatory_rule_versions')->restrictOnDelete();
             $table->foreignId('extended_from_id')->nullable()->constrained('procurement_deadlines')->restrictOnDelete();
             $table->text('extension_reason')->nullable();
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
 

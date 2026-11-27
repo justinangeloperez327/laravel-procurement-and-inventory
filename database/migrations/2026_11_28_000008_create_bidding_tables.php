@@ -80,8 +80,14 @@ return new class extends Migration
             $table->text('body')->nullable();
             $table->date('adopted_on');
             $table->foreignId('document_id')->nullable()->constrained('documents')->restrictOnDelete();
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->unique(['bac_committee_id', 'resolution_no']);
+        });
+
+        // Declared here because bac_resolutions is created after procurement_justifications.
+        Schema::table('procurement_justifications', function (Blueprint $table) {
+            $table->foreignId('bac_resolution_id')->nullable()->constrained('bac_resolutions')->restrictOnDelete();
         });
 
         Schema::create('rfqs', function (Blueprint $table) {
@@ -218,6 +224,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('procurement_justifications', fn (Blueprint $table) => $table->dropConstrainedForeignId('bac_resolution_id'));
         Schema::dropIfExists('post_qualifications');
         Schema::dropIfExists('bid_evaluations');
         Schema::dropIfExists('evaluation_criteria');

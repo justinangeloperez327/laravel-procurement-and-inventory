@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\BelongsToEditableParent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProcurementProjectItem extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, BelongsToEditableParent, HasFactory;
 
     protected $table = 'procurement_project_items';
 
@@ -42,5 +43,10 @@ class ProcurementProjectItem extends Model
     public function purchaseRequestItem(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequestItem::class, 'purchase_request_item_id');
+    }
+
+    protected function editableParent(): ?object
+    {
+        return $this->procurementProject;
     }
 }
