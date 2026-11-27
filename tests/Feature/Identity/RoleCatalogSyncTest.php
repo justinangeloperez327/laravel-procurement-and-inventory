@@ -12,7 +12,7 @@ it('seeds the catalog idempotently', function () {
 
     expect(Role::count())->toBe(count(RoleCatalog::ROLES))
         ->and(Permission::count())->toBe(count(RoleCatalog::PERMISSIONS))
-        ->and(role('hope')->permissions->pluck('code')->all())->toEqualCanonicalizing(['app.approve', 'award.approve']);
+        ->and(role('hope')->permissions->pluck('code')->all())->toEqualCanonicalizing(['app.approve', 'award.approve', 'supplier.sanction', 'compliance.review']);
 });
 
 it('is exposed as an artisan command and via the database seeder', function () {

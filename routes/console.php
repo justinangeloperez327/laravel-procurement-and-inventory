@@ -2,8 +2,10 @@
 
 use App\Domain\Approvals\DefaultWorkflows;
 use App\Domain\Identity\SyncRoleCatalog;
+use App\Domain\Suppliers\SupplierComplianceSweep;
 use App\Models\Agency;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('gpims:sync-roles', function (SyncRoleCatalog $sync) {
     $sync();
@@ -23,3 +25,10 @@ Artisan::command('gpims:install-default-workflows {agency : Agency code}', funct
 
     return 0;
 })->purpose('Create starter approval workflows (market scoping, PPMP, APP, purchase request) for an agency');
+
+Artisan::command('gpims:supplier-compliance-sweep', function (SupplierComplianceSweep $sweep) {
+    $counts = $sweep->run();
+    $this->info("Status changes: {$counts['status_changes']}; expired documents: {$counts['expired']}; expiring soon: {$counts['expiring']}.");
+})->purpose('Align supplier status with sanctions and flag expired or expiring eligibility documents');
+
+Schedule::command('gpims:supplier-compliance-sweep')->dailyAt('00:30')->onOneServer()->withoutOverlapping();

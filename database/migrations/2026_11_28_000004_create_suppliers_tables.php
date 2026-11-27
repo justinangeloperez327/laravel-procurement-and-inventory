@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('email', 255)->nullable();
             $table->string('phone', 32)->nullable();
-            $table->string('status', 40)->default('active');
+            $table->string('status', 40)->default('pending');
             $table->date('registered_at')->nullable();
             $table->timestamps();
             $table->unique(['agency_id', 'tin']);
@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('reference_no', 64)->nullable();
             $table->date('issued_on')->nullable();
             $table->date('expires_on')->nullable();
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('verified_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('verified_at')->nullable();
             $table->timestamps();
@@ -63,6 +64,7 @@ return new class extends Migration
             $table->decimal('ownership_percentage', 9, 4)->nullable();
             $table->string('control_basis', 255)->nullable();
             $table->date('declared_on');
+            $table->foreignId('verified_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('verified_at')->nullable();
             $table->timestamps();
         });
@@ -78,6 +80,7 @@ return new class extends Migration
             $table->date('effective_to')->nullable();
             $table->timestampTz('lifted_at')->nullable();
             $table->text('lifted_reason')->nullable();
+            $table->foreignId('lifted_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });

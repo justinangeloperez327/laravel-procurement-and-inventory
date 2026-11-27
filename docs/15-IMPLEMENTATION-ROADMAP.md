@@ -11,7 +11,7 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | 2 | Shared services and master data | Done — see [22-PHASE-2-STATUS.md](22-PHASE-2-STATUS.md) | 1 | M |
 | 3 | Planning and budget allocations | Done — see [23-PHASE-3-STATUS.md](23-PHASE-3-STATUS.md) | 2 | L |
 | 4 | Purchase requests and budget reservation | Next | 3 | M |
-| 5 | Supplier registry and compliance | Schema ready | 2 | M |
+| 5 | Supplier registry and compliance | Done — see [24-PHASE-5-STATUS.md](24-PHASE-5-STATUS.md) | 2 | M |
 | 6 | Procurement projects and mode screening | Schema ready | 4, 5 | L |
 | 7 | Solicitation, bidding and evaluation | Schema ready | 6 | L |
 | 8 | Award, contracts and purchase orders | Schema ready | 7 | L |
@@ -70,7 +70,7 @@ Builds the services every later phase uses.
 
 **Tests:** concurrent reservations cannot overcommit; PR without APP coverage is blocked; return and resubmit keeps history.
 
-### 5 — Supplier registry and compliance (L-11, L-14)
+### 5 — Supplier registry and compliance (L-11, L-14) ✅
 - Supplier registration, contacts and eligibility documents with expiry tracking.
 - Beneficial ownership and sanctions (suspension and blacklisting with effective dates).
 - Compliance flags raised automatically for expired documents and sanctioned suppliers.

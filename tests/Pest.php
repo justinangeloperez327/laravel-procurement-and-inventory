@@ -3,16 +3,24 @@
 use App\Domain\Approvals\DefaultWorkflows;
 use App\Domain\Identity\GrantRole;
 use App\Domain\Identity\SyncRoleCatalog;
+use App\Domain\Suppliers\BeneficialOwnership;
+use App\Domain\Suppliers\ManageSupplierStatus;
+use App\Domain\Suppliers\RegisterSupplier;
+use App\Domain\Suppliers\SupplierDocuments;
+use App\Domain\Suppliers\SupplierDocumentTypes;
 use App\Models\Agency;
 use App\Models\Department;
 use App\Models\FiscalYear;
 use App\Models\Role;
 use App\Models\RoleAssignment;
+use App\Models\Supplier;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature', 'Unit', 'Concurrency');
@@ -115,4 +123,44 @@ function planningContext(): object
         'budget' => $user('budget_officer'),
         'budget2' => $user('budget_officer'),
     ];
+}
+
+/**
+ * Agency with supplier staff: a registrar (supplier.manage), a verifier (supplier.verify), a sanctioning
+ * officer and a compliance reviewer (HoPE).
+ *
+ * @return object{agency: Agency, registrar: User, verifier: User, hope: User, officer: User}
+ */
+function supplierContext(): object
+{
+    seedRoles();
+    Storage::fake('local');
+    $agency = Agency::factory()->create();
+    $user = fn (string $role) => tap(User::factory()->forAgency($agency)->create(), fn (User $u) => grant($u, $role));
+
+    return (object) [
+        'agency' => $agency,
+        'registrar' => $user('bac_secretariat'),
+        'verifier' => $user('bac_secretariat'),
+        'officer' => $user('procurement_officer'),
+        'hope' => $user('hope'),
+    ];
+}
+
+/** A fully verified, active supplier, built through the real domain actions. */
+function eligibleSupplier(object $c, array $attributes = []): Supplier
+{
+    $supplier = app(RegisterSupplier::class)($c->registrar, array_merge([
+        'name' => fake()->company(), 'tin' => fake()->unique()->numerify('#########000'), 'business_type' => 'corporation',
+    ], $attributes));
+    $docs = app(SupplierDocuments::class);
+    foreach (SupplierDocumentTypes::REQUIRED as $type) {
+        $doc = $docs->add($c->registrar, $supplier, $type, UploadedFile::fake()->createWithContent("{$type}.pdf", "%PDF-1.4 {$type}"),
+            'REF-'.$type, now()->subMonth()->toDateString(), now()->addYear()->toDateString());
+        $docs->verify($c->verifier, $doc);
+    }
+    $owners = app(BeneficialOwnership::class);
+    $owners->verify($c->verifier, $owners->declare($c->registrar, $supplier, 'Juan dela Cruz', '100', 'Filipino'));
+
+    return app(ManageSupplierStatus::class)->activate($c->verifier, $supplier->fresh());
 }

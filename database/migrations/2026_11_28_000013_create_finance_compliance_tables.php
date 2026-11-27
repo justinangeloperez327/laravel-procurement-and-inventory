@@ -137,6 +137,7 @@ return new class extends Migration
             $table->string('action_taken', 32)->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('reviewed_at')->nullable();
+            $table->text('review_notes')->nullable();
             $table->timestamps();
         });
 

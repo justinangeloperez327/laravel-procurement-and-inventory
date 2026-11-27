@@ -23,6 +23,7 @@ class ConflictDeclaration extends Model
         'action_taken',
         'reviewed_by',
         'reviewed_at',
+        'review_notes',
     ];
 
     protected function casts(): array
