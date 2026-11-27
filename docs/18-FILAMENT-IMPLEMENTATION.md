@@ -18,4 +18,4 @@ Use relation managers for line items, actions for approvals, and policies for ev
 Install compatible Filament panel builder, register panel provider, configure PostgreSQL, create an explicitly authorized local test user, verify login and protected routes, run migrations and CI. No deployment or business modules in this phase.
 
 ## Bootstrap status
-Framework and dependency installation remain pending until a runnable Composer environment or verified scaffold is available. This decision supersedes the frontend choice in earlier planning documents.
+Framework installed and dependencies locked in `composer.lock` (see 19-PHASE-0-STATUS.md). This decision supersedes the frontend choice in earlier planning documents.

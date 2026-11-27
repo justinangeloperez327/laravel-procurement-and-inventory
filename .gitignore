@@ -10,3 +10,7 @@
 /.idea/
 /.vscode/
 .DS_Store
+/public/css/filament/
+/public/js/filament/
+/public/fonts/filament/
+.phpunit.result.cache
