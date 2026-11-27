@@ -53,19 +53,30 @@ class Authorizer
 
     private function holdsByDelegation(User $user, string $permission, int $agencyId, ?Department $department, CarbonInterface $at): bool
     {
-        $delegations = Delegation::query()
+        return $this->delegationUsed($user, $permission, $agencyId, $department, $at) !== null;
+    }
+
+    /**
+     * The active delegation through which the user holds the permission, if any. Authority lapses when
+     * the delegator loses it, and delegated authority cannot be re-delegated.
+     */
+    public function delegationUsed(User $user, string $permission, int $agencyId, ?Department $department, ?CarbonInterface $at = null): ?Delegation
+    {
+        $at ??= now();
+        if (! $user->is_active) {
+            return null;
+        }
+
+        return Delegation::query()
             ->active($at)
             ->with('delegator')
             ->where('delegate_id', $user->id)
             ->where('agency_id', $agencyId)
             ->where(fn (Builder $q) => $this->scope($q, $department))
             ->whereHas('permission', fn (Builder $q) => $q->where('code', $permission))
-            ->get();
-
-        // Authority lapses when the delegator loses it; delegated authority cannot be re-delegated.
-        return $delegations->contains(
-            fn (Delegation $d) => $this->holdsDirectly($d->delegator, $permission, $agencyId, $department, $at)
-        );
+            ->orderBy('id')
+            ->get()
+            ->first(fn (Delegation $d) => $this->holdsDirectly($d->delegator, $permission, $agencyId, $department, $at));
     }
 
     /** Agency-wide grants cover every department; department grants cover only that department. */

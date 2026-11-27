@@ -22,6 +22,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel->default()->id('admin')->path('admin')->login()
             ->brandName('GPIMS')->pages([Dashboard::class])
+            ->navigationGroups(['Organization', 'Access control', 'Budget master data', 'Catalog', 'Regulatory'])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->middleware([
                 EncryptCookies::class, AddQueuedCookiesToResponse::class,

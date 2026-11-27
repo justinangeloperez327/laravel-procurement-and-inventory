@@ -56,8 +56,8 @@ class RoleAssignmentsRelationManager extends RelationManager
             ->filters([
                 TernaryFilter::make('current')->label('Current')->default(true)
                     ->queries(
-                        true: fn (Builder $q) => $q->active(),
-                        false: fn (Builder $q) => $q->where(fn (Builder $w) => $w->whereNotNull('revoked_at')->orWhere('expires_at', '<=', now())),
+                        true: fn (Builder $query) => $query->active(),
+                        false: fn (Builder $query) => $query->where(fn (Builder $w) => $w->whereNotNull('revoked_at')->orWhere('expires_at', '<=', now())),
                     ),
             ])
             ->defaultSort('granted_at', 'desc')

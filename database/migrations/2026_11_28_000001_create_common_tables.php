@@ -13,6 +13,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Per-agency, per-type, per-year counters for human-readable reference numbers.
+        Schema::create('reference_sequences', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('agency_id')->constrained('agencies')->restrictOnDelete();
+            $table->string('sequence_type', 32);
+            $table->smallInteger('year');
+            $table->unsignedInteger('last_value')->default(0);
+            $table->timestamps();
+            $table->unique(['agency_id', 'sequence_type', 'year']);
+        });
+
         Schema::create('regulatory_sources', function (Blueprint $table) {
             $table->id();
             $table->string('code', 64);
@@ -41,6 +52,7 @@ return new class extends Migration
             $table->text('approved_interpretation')->nullable();
             $table->date('effective_from');
             $table->date('effective_to')->nullable();
+            $table->foreignId('prepared_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('reviewed_at')->nullable();
             $table->string('test_reference', 255)->nullable();
@@ -57,6 +69,7 @@ return new class extends Migration
             $table->string('title', 255);
             $table->string('classification', 40)->default('internal');
             $table->string('retention_policy', 128)->nullable();
+            $table->timestampTz('unsealed_at')->nullable();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->index(['document_type']);
@@ -177,6 +190,7 @@ return new class extends Migration
         Schema::dropIfExists('documents');
         Schema::dropIfExists('regulatory_rule_versions');
         Schema::dropIfExists('regulatory_sources');
+        Schema::dropIfExists('reference_sequences');
 
         if (DB::getDriverName() === 'pgsql') {
             DB::unprepared('DROP FUNCTION IF EXISTS forbid_mutation()');

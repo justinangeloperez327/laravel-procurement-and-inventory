@@ -2,7 +2,7 @@
 
 namespace App\Domain\Identity;
 
-use DomainException;
+use App\Domain\Shared\DomainRuleViolation;
 
 /** Raised when an identity or authority change would breach an access-control rule. */
-class IdentityViolation extends DomainException {}
+class IdentityViolation extends DomainRuleViolation {}

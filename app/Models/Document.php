@@ -25,6 +25,7 @@ class Document extends Model
         'title',
         'classification',
         'retention_policy',
+        'unsealed_at',
         'created_by',
     ];
 
@@ -32,6 +33,7 @@ class Document extends Model
     {
         return [
             'classification' => DocumentClassification::class,
+            'unsealed_at' => 'datetime',
         ];
     }
 

@@ -8,8 +8,8 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | --- | --- | --- | --- | --- |
 | 0 | Foundation | Done; CI on PHP 8.5 to confirm | — | — |
 | 1 | Identity and organization | Done; MFA and audit export moved to phase 14 | 0 | — |
-| 2 | Shared services and master data | Next | 1 | M |
-| 3 | Planning and budget allocations | Schema ready | 2 | L |
+| 2 | Shared services and master data | Done — see [22-PHASE-2-STATUS.md](22-PHASE-2-STATUS.md) | 1 | M |
+| 3 | Planning and budget allocations | Next | 2 | L |
 | 4 | Purchase requests and budget reservation | Schema ready | 3 | M |
 | 5 | Supplier registry and compliance | Schema ready | 2 | M |
 | 6 | Procurement projects and mode screening | Schema ready | 4, 5 | L |
@@ -44,7 +44,7 @@ Laravel 13, Filament 5, PHP 8.5, PostgreSQL, Pest 4, CI, locked dependencies.
 Agencies, departments and fiscal years; role catalog; scoped authorizer; segregation of duties; time-boxed delegation; append-only audit log; access-control screens. See [20-PHASE-1-STATUS.md](20-PHASE-1-STATUS.md).
 **Agency input:** approved role-to-permission matrix, incompatible role pairs and maximum delegation length.
 
-### 2 — Shared services and master data
+### 2 — Shared services and master data ✅
 Builds the services every later phase uses.
 - **Reference numbering:** a locked per-agency, per-year, per-type sequence (for example `PR-2026-0001`). No gaps from rolled-back transactions unless the agency accepts gaps.
 - **State machine service:** allowed transitions per model, a required reason on return, reject and cancel paths, and a `status_histories` entry for every change.

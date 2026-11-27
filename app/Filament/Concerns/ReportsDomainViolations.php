@@ -2,7 +2,7 @@
 
 namespace App\Filament\Concerns;
 
-use App\Domain\Identity\IdentityViolation;
+use App\Domain\Shared\DomainRuleViolation;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -14,7 +14,7 @@ trait ReportsDomainViolations
     {
         try {
             $callback();
-        } catch (IdentityViolation $e) {
+        } catch (DomainRuleViolation $e) {
             Notification::make()->danger()->title('Change not allowed')->body($e->getMessage())->send();
             $action->halt();
 

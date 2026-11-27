@@ -2,8 +2,10 @@
 
 namespace App\Enums;
 
+use App\Domain\Shared\HasTransitions;
+
 /** Delivery lifecycle (docs/07). */
-enum DeliveryStatus: string
+enum DeliveryStatus: string implements HasTransitions
 {
     case Scheduled = 'scheduled';
     case Received = 'received';
@@ -26,5 +28,24 @@ enum DeliveryStatus: string
             self::Posted => 'Posted',
             self::DiscrepancyFollowup => 'Discrepancy followup',
         };
+    }
+
+    public function allowedTransitions(): array
+    {
+        return match ($this) {
+            self::Scheduled => [self::Received],
+            self::Received => [self::InspectionPending],
+            self::InspectionPending => [self::Accepted, self::PartiallyAccepted, self::Rejected],
+            self::Accepted => [self::Posted],
+            self::PartiallyAccepted => [self::Posted, self::DiscrepancyFollowup],
+            self::Rejected => [self::DiscrepancyFollowup],
+            self::DiscrepancyFollowup => [self::Posted],
+            self::Posted => [],
+        };
+    }
+
+    public function requiresReason(): bool
+    {
+        return in_array($this, [self::Rejected, self::DiscrepancyFollowup], true);
     }
 }

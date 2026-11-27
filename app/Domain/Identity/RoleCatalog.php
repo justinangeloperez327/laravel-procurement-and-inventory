@@ -36,6 +36,10 @@ final class RoleCatalog
         'invoice.process' => 'Process and match supplier invoices',
         'payment.record' => 'Record payment references',
         'audit.read' => 'Read audit logs and records (read-only)',
+        'master_data.manage' => 'Maintain items, categories, units of measure and warehouses',
+        'budget.master_data' => 'Maintain fund sources and account codes',
+        'regulatory_rule.manage' => 'Record regulatory sources and draft rule versions',
+        'regulatory_rule.approve' => 'Legally review, approve and retire rule versions',
     ];
 
     /** @var array<string, array{name: string, permissions: list<string>, read_only?: bool}> */
@@ -45,8 +49,8 @@ final class RoleCatalog
         'department_head' => ['name' => 'Department Head', 'permissions' => ['ppmp.approve', 'purchase_request.approve']],
         'end_user' => ['name' => 'End User', 'permissions' => ['purchase_request.create', 'purchase_request.submit']],
         'planning_officer' => ['name' => 'Planning Officer', 'permissions' => ['ppmp.create', 'app.consolidate']],
-        'budget_officer' => ['name' => 'Budget Officer', 'permissions' => ['budget.certify', 'budget.reserve']],
-        'procurement_officer' => ['name' => 'Procurement Officer', 'permissions' => ['rfq.manage', 'contract.manage']],
+        'budget_officer' => ['name' => 'Budget Officer', 'permissions' => ['budget.certify', 'budget.reserve', 'budget.master_data']],
+        'procurement_officer' => ['name' => 'Procurement Officer', 'permissions' => ['rfq.manage', 'contract.manage', 'regulatory_rule.manage']],
         'bac_chair' => ['name' => 'BAC Chair', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend']],
         'bac_member' => ['name' => 'BAC Member', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend']],
         'bac_secretariat' => ['name' => 'BAC Secretariat', 'permissions' => ['rfq.manage']],
@@ -54,11 +58,13 @@ final class RoleCatalog
         'observer' => ['name' => 'Observer', 'permissions' => [], 'read_only' => true],
         'receiving_officer' => ['name' => 'Receiving Officer', 'permissions' => ['delivery.receive']],
         'inspection_officer' => ['name' => 'Inspection Officer', 'permissions' => ['inspection.accept']],
-        'supply_officer' => ['name' => 'Supply Officer', 'permissions' => ['inventory.issue', 'inventory.adjust']],
+        'supply_officer' => ['name' => 'Supply Officer', 'permissions' => ['inventory.issue', 'inventory.adjust', 'master_data.manage']],
         'property_officer' => ['name' => 'Property Officer', 'permissions' => ['asset.assign']],
         'accounting_officer' => ['name' => 'Accounting Officer', 'permissions' => ['invoice.process']],
         'cashier' => ['name' => 'Cashier', 'permissions' => ['payment.record']],
         'auditor' => ['name' => 'Auditor', 'permissions' => ['audit.read'], 'read_only' => true],
+        // docs/02: every enforceable rule needs a named legal reviewer.
+        'legal_reviewer' => ['name' => 'Legal Reviewer', 'permissions' => ['regulatory_rule.approve']],
     ];
 
     /**

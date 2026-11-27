@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Domain\Approvals\Approvable;
+use App\Domain\Approvals\HasApprovals;
 use App\Domain\Audit\Auditable;
 use App\Enums\PurchaseRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,9 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PurchaseRequest extends Model
+class PurchaseRequest extends Model implements Approvable
 {
-    use Auditable, HasFactory;
+    use Auditable, HasApprovals, HasFactory;
 
     protected $table = 'purchase_requests';
 
@@ -86,5 +88,25 @@ class PurchaseRequest extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseRequestItem::class, 'purchase_request_id');
+    }
+
+    public function approvalSubjectType(): string
+    {
+        return 'purchase_request';
+    }
+
+    public function approvalAgencyId(): int
+    {
+        return $this->agency_id;
+    }
+
+    public function approvalDepartment(): ?Department
+    {
+        return $this->department;
+    }
+
+    public function approvalInitiatorId(): ?int
+    {
+        return $this->requested_by;
     }
 }

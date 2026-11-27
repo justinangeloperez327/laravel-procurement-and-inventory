@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Domain\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** An authoritative legal or regulatory issuance (law, IRR, GPPB resolution, COA/DBM circular). */
 class RegulatorySource extends Model
@@ -30,5 +31,10 @@ class RegulatorySource extends Model
             'issued_on' => 'date',
             'effective_from' => 'date',
         ];
+    }
+
+    public function ruleVersions(): HasMany
+    {
+        return $this->hasMany(RegulatoryRuleVersion::class, 'regulatory_source_id');
     }
 }
