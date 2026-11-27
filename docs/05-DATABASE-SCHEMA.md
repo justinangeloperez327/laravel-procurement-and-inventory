@@ -1,6 +1,6 @@
 # 05 — Logical Database Schema
 
-Conceptual design, **not migrations**. Review joins, cardinality and constraints before implementation.
+Originally a conceptual design; now implemented. See [21-SCHEMA-IMPLEMENTATION.md](21-SCHEMA-IMPLEMENTATION.md) for the migrations and deviations.
 
 | Domain | Candidate tables |
 | --- | --- |

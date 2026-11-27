@@ -11,14 +11,18 @@ class FiscalYearFactory extends Factory
 {
     public function definition(): array
     {
-        $year = (int) now()->format('Y');
-
         return [
             'agency_id' => Agency::factory(),
-            'year' => $year,
-            'starts_on' => "{$year}-01-01",
-            'ends_on' => "{$year}-12-31",
+            // Unique so several factories can create fiscal years for the same agency.
+            'year' => fake()->unique()->numberBetween(2000, 2099),
+            'starts_on' => fn (array $attributes) => "{$attributes['year']}-01-01",
+            'ends_on' => fn (array $attributes) => "{$attributes['year']}-12-31",
             'status' => FiscalYear::STATUS_OPEN,
         ];
+    }
+
+    public function forYear(int $year): static
+    {
+        return $this->state(fn () => ['year' => $year]);
     }
 }

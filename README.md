@@ -2,7 +2,7 @@
 
 Documentation-first Laravel procurement and inventory application based on RA 12009 and applicable implementing regulations.
 
-**Status:** Laravel 13 + Filament 5 scaffold (phase 0) and identity/organization module (phase 1: roles, scoped permissions, delegation, append-only audit) implemented. See [docs/20-PHASE-1-STATUS.md](docs/20-PHASE-1-STATUS.md).
+**Status:** Laravel 13 + Filament 5 scaffold (phase 0) and identity/organization module (phase 1: roles, scoped permissions, delegation, append-only audit) implemented. Full schema (tables, models, factories) for phases 2–10 is in place; workflows and screens for those phases are next. See [docs/20-PHASE-1-STATUS.md](docs/20-PHASE-1-STATUS.md) and [docs/21-SCHEMA-IMPLEMENTATION.md](docs/21-SCHEMA-IMPLEMENTATION.md).
 
 See the `docs/` directory for legal traceability, requirements, workflows, architecture, roadmap, testing, and deployment planning.
 

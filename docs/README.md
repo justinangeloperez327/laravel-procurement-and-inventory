@@ -22,3 +22,4 @@ This documentation describes the planned Laravel procurement and inventory manag
 18. [Filament Implementation](18-FILAMENT-IMPLEMENTATION.md)
 19. [Phase 0 Status](19-PHASE-0-STATUS.md)
 20. [Phase 1 Status — Identity and Organization](20-PHASE-1-STATUS.md)
+21. [Schema Implementation (phases 2–10)](21-SCHEMA-IMPLEMENTATION.md)
