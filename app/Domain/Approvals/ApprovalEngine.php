@@ -107,6 +107,22 @@ class ApprovalEngine
         });
     }
 
+    /** Whether the actor may decide the next step right now (for showing approve/return buttons). */
+    public function canAct(User $actor, Approvable&Model $subject): bool
+    {
+        try {
+            $state = $this->state($subject);
+            if (! $state->isOpen() || $state->nextStep === null) {
+                return false;
+            }
+            $this->authorize($actor, $subject, $state->nextStep, $state->roundActions);
+
+            return true;
+        } catch (WorkflowViolation) {
+            return false;
+        }
+    }
+
     /**
      * @param  Collection<int, ApprovalAction>  $round
      * @return Delegation|null The delegation relied on, if the actor acts on delegated authority.

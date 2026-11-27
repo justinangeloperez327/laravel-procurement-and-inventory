@@ -45,6 +45,7 @@ return new class extends Migration
             $table->string('reference_no', 64);
             $table->decimal('amount', 18, 2);
             $table->string('authorization_reference', 128);
+            $table->foreignId('recorded_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('approved_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('approved_at')->nullable();
             $table->string('status', 16)->default('draft');

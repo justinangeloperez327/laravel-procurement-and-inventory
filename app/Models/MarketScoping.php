@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use App\Domain\Approvals\HasApprovals;
 use App\Domain\Audit\Auditable;
+use App\Domain\Planning\PlanDocument;
+use App\Domain\Shared\FreezesWhenFinal;
+use App\Domain\Shared\WorkflowViolation;
 use App\Enums\PlanStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class MarketScoping extends Model
+class MarketScoping extends Model implements PlanDocument
 {
-    use Auditable, HasFactory;
+    use Auditable, FreezesWhenFinal, HasApprovals, HasFactory;
 
     protected $table = 'market_scopings';
 
@@ -25,6 +29,9 @@ class MarketScoping extends Model
         'conducted_by',
         'conducted_on',
         'status',
+        'submitted_at',
+        'approved_by',
+        'approved_at',
     ];
 
     protected function casts(): array
@@ -32,6 +39,8 @@ class MarketScoping extends Model
         return [
             'conducted_on' => 'date',
             'status' => PlanStatus::class,
+            'submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -55,8 +64,59 @@ class MarketScoping extends Model
         return $this->belongsTo(User::class, 'conducted_by');
     }
 
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(MarketScopingItem::class, 'market_scoping_id');
+    }
+
+    public static function editableStatuses(): array
+    {
+        return [PlanStatus::Draft, PlanStatus::Returned];
+    }
+
+    public function approvalSubjectType(): string
+    {
+        return 'market_scoping';
+    }
+
+    public function approvalInitiatorId(): ?int
+    {
+        return $this->conducted_by;
+    }
+
+    public function approvalAgencyId(): int
+    {
+        return $this->agency_id;
+    }
+
+    public function approvalDepartment(): ?Department
+    {
+        return $this->department;
+    }
+
+    public function submissionPermission(): string
+    {
+        return 'ppmp.create';
+    }
+
+    public function assertReadyForSubmission(): void
+    {
+        if (! $this->items()->exists()) {
+            throw new WorkflowViolation('Add at least one scoped item before submitting.');
+        }
+    }
+
+    public function recalculateTotal(): void {}
+
+    public function afterApproved(User $approver): void {}
+
+    protected static function workflowColumns(): array
+    {
+        return ['status', 'submitted_at', 'approved_by', 'approved_at', 'updated_at'];
     }
 }

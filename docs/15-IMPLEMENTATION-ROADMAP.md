@@ -9,8 +9,8 @@ Revised after phases 0–1 and the schema build. The tables, models and factorie
 | 0 | Foundation | Done; CI on PHP 8.5 to confirm | — | — |
 | 1 | Identity and organization | Done; MFA and audit export moved to phase 14 | 0 | — |
 | 2 | Shared services and master data | Done — see [22-PHASE-2-STATUS.md](22-PHASE-2-STATUS.md) | 1 | M |
-| 3 | Planning and budget allocations | Next | 2 | L |
-| 4 | Purchase requests and budget reservation | Schema ready | 3 | M |
+| 3 | Planning and budget allocations | Done — see [23-PHASE-3-STATUS.md](23-PHASE-3-STATUS.md) | 2 | L |
+| 4 | Purchase requests and budget reservation | Next | 3 | M |
 | 5 | Supplier registry and compliance | Schema ready | 2 | M |
 | 6 | Procurement projects and mode screening | Schema ready | 4, 5 | L |
 | 7 | Solicitation, bidding and evaluation | Schema ready | 6 | L |
@@ -55,7 +55,7 @@ Builds the services every later phase uses.
 
 **Tests:** concurrent reference numbering, rejected transitions, delegated approval, document hash and version immutability, and the legacy-regime rule test (L-15).
 
-### 3 — Planning and budget allocations (L-01, L-02)
+### 3 — Planning and budget allocations (L-01, L-02) ✅
 - Market scoping, then PPMP preparation, submission, department approval and versioned revision.
 - APP consolidation with `app_item_sources` lineage, HoPE approval, and versioned revisions. An approved version is never edited; it is superseded.
 - Budget allocations with an authorization reference, adjustments (append-only), and the available-funds calculation: allocation + adjustments − active reservations − obligations.

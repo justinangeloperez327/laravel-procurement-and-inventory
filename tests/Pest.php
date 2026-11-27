@@ -1,9 +1,11 @@
 <?php
 
+use App\Domain\Approvals\DefaultWorkflows;
 use App\Domain\Identity\GrantRole;
 use App\Domain\Identity\SyncRoleCatalog;
 use App\Models\Agency;
 use App\Models\Department;
+use App\Models\FiscalYear;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\User;
@@ -86,4 +88,31 @@ function concurrently(int $workers, Closure $task): array
 
         return $result === false ? ['error' => 'worker produced no result'] : ($result['ok'] ?? $result);
     }, $files);
+}
+
+/**
+ * A ready agency for planning and budget tests: an open fiscal year, a department, default approval
+ * workflows, and users holding the planning and budget roles.
+ *
+ * @return object{agency: Agency, fy: FiscalYear, dept: Department, planner: User, head: User, appPlanner: User, hope: User, budget: User, budget2: User}
+ */
+function planningContext(): object
+{
+    seedRoles();
+    $agency = Agency::factory()->create();
+    DefaultWorkflows::install($agency);
+    $dept = Department::factory()->for($agency)->create();
+    $user = fn (string $role, ?Department $scope = null) => tap(User::factory()->forAgency($agency)->create(), fn (User $u) => grant($u, $role, $scope));
+
+    return (object) [
+        'agency' => $agency,
+        'fy' => FiscalYear::factory()->for($agency)->forYear(2027)->create(),
+        'dept' => $dept,
+        'planner' => $user('planning_officer', $dept),
+        'head' => $user('department_head', $dept),
+        'appPlanner' => $user('planning_officer'),
+        'hope' => $user('hope'),
+        'budget' => $user('budget_officer'),
+        'budget2' => $user('budget_officer'),
+    ];
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\BelongsToEditableParent;
 use App\Enums\ProcurementMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AppItem extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, BelongsToEditableParent, HasFactory;
 
     protected $table = 'app_items';
 
@@ -60,5 +61,10 @@ class AppItem extends Model
     public function sources(): HasMany
     {
         return $this->hasMany(AppItemSource::class, 'app_item_id');
+    }
+
+    protected function editableParent(): ?object
+    {
+        return $this->appVersion;
     }
 }

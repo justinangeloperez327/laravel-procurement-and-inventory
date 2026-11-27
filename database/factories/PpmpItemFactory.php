@@ -22,7 +22,6 @@ class PpmpItemFactory extends Factory
             'unit_of_measure_id' => UnitOfMeasure::factory(),
             'quantity' => fake()->numberBetween(1, 100),
             'estimated_unit_cost' => fake()->randomFloat(2, 10, 5000),
-            'estimated_budget' => fake()->randomFloat(2, 1000, 500000),
             'proposed_mode' => null,
             'schedule_start' => null,
             'schedule_end' => null,

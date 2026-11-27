@@ -24,3 +24,4 @@ This documentation describes the planned Laravel procurement and inventory manag
 20. [Phase 1 Status — Identity and Organization](20-PHASE-1-STATUS.md)
 21. [Schema Implementation (phases 2–10)](21-SCHEMA-IMPLEMENTATION.md)
 22. [Phase 2 Status — Shared Services and Master Data](22-PHASE-2-STATUS.md)
+23. [Phase 3 Status — Planning and Budget Allocations](23-PHASE-3-STATUS.md)

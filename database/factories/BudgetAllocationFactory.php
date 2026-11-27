@@ -7,6 +7,7 @@ use App\Models\Agency;
 use App\Models\BudgetAllocation;
 use App\Models\FiscalYear;
 use App\Models\FundSource;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<BudgetAllocation> */
@@ -25,6 +26,7 @@ class BudgetAllocationFactory extends Factory
             'reference_no' => 'ALLOT-'.fake()->unique()->numerify('########'),
             'amount' => fake()->randomFloat(2, 100000, 5000000),
             'authorization_reference' => 'SARO-'.fake()->numerify('####'),
+            'recorded_by' => fn (array $attributes) => User::factory()->state(['agency_id' => $attributes['agency_id']]),
             'approved_by' => null,
             'approved_at' => null,
             'status' => 'draft',

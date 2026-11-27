@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\FreezesWhenFinal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Approved allocation. Available balance = amount + adjustments - active reservations - obligations (docs/09). */
 class BudgetAllocation extends Model
 {
-    use Auditable, HasFactory;
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_APPROVED = 'approved';
+
+    public const STATUS_CLOSED = 'closed';
+
+    use Auditable, FreezesWhenFinal, HasFactory;
 
     protected $table = 'budget_allocations';
 
@@ -24,6 +31,7 @@ class BudgetAllocation extends Model
         'reference_no',
         'amount',
         'authorization_reference',
+        'recorded_by',
         'approved_by',
         'approved_at',
         'status',
@@ -62,6 +70,11 @@ class BudgetAllocation extends Model
         return $this->belongsTo(AccountCode::class, 'account_code_id');
     }
 
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
+    }
+
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
@@ -80,5 +93,21 @@ class BudgetAllocation extends Model
     public function obligations(): HasMany
     {
         return $this->hasMany(BudgetObligation::class, 'budget_allocation_id');
+    }
+
+    /** Approved allocations change only through budget adjustments. */
+    public static function editableStatuses(): array
+    {
+        return [self::STATUS_DRAFT];
+    }
+
+    protected static function workflowColumns(): array
+    {
+        return ['status', 'approved_by', 'approved_at', 'updated_at'];
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
     }
 }

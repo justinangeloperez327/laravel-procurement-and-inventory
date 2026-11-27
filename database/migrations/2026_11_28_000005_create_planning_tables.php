@@ -24,6 +24,9 @@ return new class extends Migration
             $table->foreignId('conducted_by')->constrained('users')->restrictOnDelete();
             $table->date('conducted_on');
             $table->string('status', 40)->default('draft');
+            $table->timestampTz('submitted_at')->nullable();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->restrictOnDelete();
+            $table->timestampTz('approved_at')->nullable();
             $table->timestamps();
             $table->unique(['agency_id', 'reference_no']);
         });
@@ -69,7 +72,8 @@ return new class extends Migration
             $table->foreignId('unit_of_measure_id')->constrained('units_of_measure')->restrictOnDelete();
             $table->decimal('quantity', 18, 4);
             $table->decimal('estimated_unit_cost', 18, 4);
-            $table->decimal('estimated_budget', 18, 2);
+            // Exact decimal arithmetic in the database; never computed with PHP floats.
+            $table->decimal('estimated_budget', 18, 2)->storedAs('round(quantity * estimated_unit_cost, 2)');
             $table->string('proposed_mode', 40)->nullable();
             $table->date('schedule_start')->nullable();
             $table->date('schedule_end')->nullable();
@@ -99,6 +103,7 @@ return new class extends Migration
             $table->boolean('is_indicative')->default(false);
             $table->decimal('total_amount', 18, 2)->default(0);
             $table->foreignId('prepared_by')->constrained('users')->restrictOnDelete();
+            $table->timestampTz('submitted_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestampTz('approved_at')->nullable();
             $table->text('revision_reason')->nullable();

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\BelongsToEditableParent;
 use App\Enums\ProcurementMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PpmpItem extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, BelongsToEditableParent, HasFactory;
 
     protected $table = 'ppmp_items';
 
@@ -22,7 +23,6 @@ class PpmpItem extends Model
         'unit_of_measure_id',
         'quantity',
         'estimated_unit_cost',
-        'estimated_budget',
         'proposed_mode',
         'schedule_start',
         'schedule_end',
@@ -71,5 +71,10 @@ class PpmpItem extends Model
     public function fundSource(): BelongsTo
     {
         return $this->belongsTo(FundSource::class, 'fund_source_id');
+    }
+
+    protected function editableParent(): ?object
+    {
+        return $this->ppmp;
     }
 }

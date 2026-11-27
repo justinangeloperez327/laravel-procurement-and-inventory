@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Domain\Audit\Auditable;
+use App\Domain\Shared\BelongsToEditableParent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MarketScopingItem extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, BelongsToEditableParent, HasFactory;
 
     protected $table = 'market_scoping_items';
 
@@ -45,5 +46,10 @@ class MarketScopingItem extends Model
     public function unitOfMeasure(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
+    }
+
+    protected function editableParent(): ?object
+    {
+        return $this->marketScoping;
     }
 }

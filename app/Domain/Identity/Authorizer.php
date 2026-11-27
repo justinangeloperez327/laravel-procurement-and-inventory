@@ -37,6 +37,45 @@ class Authorizer
         return $this->holdsByDelegation($user, $permission, $agencyId, $department, $at);
     }
 
+    /** Whether the user holds the permission in any department of their agency, directly or by delegation. */
+    public function holdsAnywhere(User $user, string $permission, ?CarbonInterface $at = null): bool
+    {
+        return $this->departmentScope($user, $permission, $at) !== [];
+    }
+
+    /**
+     * Where the user holds a permission: null means agency-wide, otherwise the list of department IDs
+     * (empty when the permission is not held at all). Useful for scoping list queries.
+     *
+     * @return list<int>|null
+     */
+    public function departmentScope(User $user, string $permission, ?CarbonInterface $at = null): ?array
+    {
+        $at ??= now();
+        if (! $user->exists || ! $user->is_active || $user->agency_id === null) {
+            return [];
+        }
+
+        $direct = $user->roleAssignments()->active($at)->where('agency_id', $user->agency_id)
+            ->whereHas('role.permissions', fn (Builder $q) => $q->where('code', $permission))
+            ->pluck('department_id');
+
+        $delegated = Delegation::query()->active($at)->with('delegator')
+            ->where('delegate_id', $user->id)->where('agency_id', $user->agency_id)
+            ->whereHas('permission', fn (Builder $q) => $q->where('code', $permission))
+            ->get()
+            ->filter(fn (Delegation $d) => $this->holdsDirectly($d->delegator, $permission, $d->agency_id,
+                $d->department_id ? Department::find($d->department_id) : null, $at))
+            ->pluck('department_id');
+
+        $all = $direct->concat($delegated);
+        if ($all->contains(null)) {
+            return null;
+        }
+
+        return $all->unique()->map(fn ($id) => (int) $id)->values()->all();
+    }
+
     public function holdsDirectly(User $user, string $permission, int $agencyId, ?Department $department, CarbonInterface $at): bool
     {
         if (! $user->is_active) {

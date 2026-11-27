@@ -38,6 +38,7 @@ final class RoleCatalog
         'audit.read' => 'Read audit logs and records (read-only)',
         'master_data.manage' => 'Maintain items, categories, units of measure and warehouses',
         'budget.master_data' => 'Maintain fund sources and account codes',
+        'budget.allocate' => 'Record, approve and adjust budget allotments',
         'regulatory_rule.manage' => 'Record regulatory sources and draft rule versions',
         'regulatory_rule.approve' => 'Legally review, approve and retire rule versions',
     ];
@@ -49,7 +50,7 @@ final class RoleCatalog
         'department_head' => ['name' => 'Department Head', 'permissions' => ['ppmp.approve', 'purchase_request.approve']],
         'end_user' => ['name' => 'End User', 'permissions' => ['purchase_request.create', 'purchase_request.submit']],
         'planning_officer' => ['name' => 'Planning Officer', 'permissions' => ['ppmp.create', 'app.consolidate']],
-        'budget_officer' => ['name' => 'Budget Officer', 'permissions' => ['budget.certify', 'budget.reserve', 'budget.master_data']],
+        'budget_officer' => ['name' => 'Budget Officer', 'permissions' => ['budget.certify', 'budget.reserve', 'budget.master_data', 'budget.allocate']],
         'procurement_officer' => ['name' => 'Procurement Officer', 'permissions' => ['rfq.manage', 'contract.manage', 'regulatory_rule.manage']],
         'bac_chair' => ['name' => 'BAC Chair', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend']],
         'bac_member' => ['name' => 'BAC Member', 'permissions' => ['procurement_mode.review', 'bid.open', 'bid.evaluate', 'bac.recommend']],
